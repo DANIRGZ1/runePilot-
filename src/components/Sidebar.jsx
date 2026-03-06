@@ -63,7 +63,7 @@ export default function Sidebar({ activeView, onNavigate, lcuStatus, version }) 
           </svg>
         </div>
         <div className="sidebar-logo-text">
-          <span className="sidebar-brand">RunasPro</span>
+          <span className="sidebar-brand">RunePilot</span>
           <span className="sidebar-sub">League Optimizer</span>
         </div>
       </div>
