@@ -175,7 +175,13 @@ function ConnectingScreen() {
   );
 }
 
-function LoadingData() {
+function LoadingData({ onRetry }) {
+  const [showRetry, setShowRetry] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShowRetry(true), 6000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="home-connecting">
       <div className="connecting-animation">
@@ -184,12 +190,17 @@ function LoadingData() {
         <div className="connecting-logo" style={{ fontSize: 11, color: '#c89b3c' }}>RP</div>
       </div>
       <p className="connecting-title">Cargando perfil…</p>
+      {showRetry && (
+        <button className="connecting-retry-btn" onClick={onRetry}>
+          Reintentar conexión
+        </button>
+      )}
     </div>
   );
 }
 
 /* ─── Main HomeView ─── */
-export default function HomeView({ ddVersion, playerData, lcuStatus }) {
+export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) {
   const connected = lcuStatus === 'connected';
   const hasSummoner = !!playerData?.summoner?.displayName;
 
@@ -279,7 +290,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus }) {
   // Not connected
   if (!connected && !hasSummoner) return <ConnectingScreen />;
   // Connected but own data loading
-  if (connected && playerData === null) return <LoadingData />;
+  if (connected && playerData === null) return <LoadingData onRetry={onRetry} />;
 
   return (
     <div className="home-view">

@@ -53,19 +53,36 @@ export default function App() {
   const matchDismissTimer = useRef(null);
   const importToastTimer = useRef(null);
 
-  const fetchPlayerData = useCallback(async () => {
+  const retryTimerRef = useRef(null);
+
+  const fetchPlayerData = useCallback(async (attempt = 0) => {
     try {
       const [sumRes, rankRes, histRes] = await Promise.allSettled([
         fetch('http://localhost:3001/lcu/summoner').then(r => r.json()),
         fetch('http://localhost:3001/lcu/ranked').then(r => r.json()),
         fetch('http://localhost:3001/lcu/history').then(r => r.json()),
       ]);
+
+      const summoner = sumRes.status === 'fulfilled' ? sumRes.value : null;
+
+      // If no displayName, the LCU API returned an error — retry up to 5 times
+      if (!summoner?.displayName) {
+        if (attempt < 5) {
+          retryTimerRef.current = setTimeout(() => fetchPlayerData(attempt + 1), 2000);
+        }
+        return;
+      }
+
       setPlayerData({
-        summoner: sumRes.status  === 'fulfilled' ? sumRes.value  : null,
-        ranked:   rankRes.status === 'fulfilled' ? rankRes.value : null,
-        history:  histRes.status === 'fulfilled' ? histRes.value : null,
+        summoner,
+        ranked:  rankRes.status === 'fulfilled' ? rankRes.value : null,
+        history: histRes.status === 'fulfilled' ? histRes.value : null,
       });
-    } catch { /* silent fail */ }
+    } catch {
+      if (attempt < 5) {
+        retryTimerRef.current = setTimeout(() => fetchPlayerData(attempt + 1), 2000);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -362,7 +379,7 @@ export default function App() {
   const renderContent = () => {
     switch (activeView) {
       case 'inicio':
-        return <HomeView ddVersion={ddVersion} playerData={playerData} lcuStatus={lcuStatus} />;
+        return <HomeView ddVersion={ddVersion} playerData={playerData} lcuStatus={lcuStatus} onRetry={() => fetchPlayerData(0)} />;
       case 'draft':
       case 'importar':
         return renderDraftView();
