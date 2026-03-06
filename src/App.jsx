@@ -6,7 +6,8 @@ import AnalysisPanel from "./components/AnalysisPanel";
 import BuildPanel from "./components/BuildPanel";
 import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import { lcuClient } from "./services/lcuClient";
-import { getLatestVersion } from "./services/datadragon";
+import { getLatestVersion, getChampionKeyMap } from "./services/datadragon";
+import { champions as allChampions } from "./data/champions";
 import { Button } from "./components/ui/button";
 import "./App.css";
 
@@ -60,8 +61,68 @@ export default function App() {
       matchDismissTimer.current = setTimeout(() => setMatchEvent(null), 3000);
     });
 
+    // LCU position → our role key
+    const POS_MAP = { top: 'TOP', jungle: 'JUNGLE', mid: 'MID', bottom: 'ADC', utility: 'SUPPORT' };
+
+    const off9 = lcuClient.on('champ_select_update', async (msg) => {
+      const session = msg.session;
+      if (!session) return;
+
+      const keyMap = await getChampionKeyMap();
+
+      // Find champion from LCU numeric ID
+      const findChamp = (championId) => {
+        if (!championId) return null;
+        const name = keyMap[championId];
+        if (!name) return null;
+        return allChampions.find((c) => c.name.toLowerCase() === name) || null;
+      };
+
+      // Parse a list of LCU players into team state {TOP, JUNGLE, ...}
+      const parseTeam = (players) => {
+        const team = { TOP: null, JUNGLE: null, MID: null, ADC: null, SUPPORT: null };
+        for (const p of players) {
+          const role = POS_MAP[p.assignedPosition];
+          const champ = findChamp(p.championId || p.championPickIntent);
+          if (role && champ) team[role] = champ;
+        }
+        return team;
+      };
+
+      // Parse completed bans from actions
+      const parseBans = (actions, teamIds) => {
+        const bans = Array(5).fill(null);
+        let i = 0;
+        for (const group of (actions || [])) {
+          for (const action of group) {
+            if (action.type === 'ban' && action.completed && teamIds.has(action.actorCellId)) {
+              const champ = findChamp(action.championId);
+              if (champ && i < 5) bans[i++] = champ;
+            }
+          }
+        }
+        return bans;
+      };
+
+      const myTeam = session.myTeam || [];
+      const theirTeam = session.theirTeam || [];
+      const isBlue = myTeam[0]?.team === 1;
+
+      const blueList = isBlue ? myTeam : theirTeam;
+      const redList = isBlue ? theirTeam : myTeam;
+
+      const blueIds = new Set(blueList.map((p) => p.cellId));
+      const redIds = new Set(redList.map((p) => p.cellId));
+
+      setBlueTeam(parseTeam(blueList));
+      setRedTeam(parseTeam(redList));
+      setBlueBans(parseBans(session.actions, blueIds));
+      setRedBans(parseBans(session.actions, redIds));
+      setActiveSlot(null);
+    });
+
     return () => {
-      [off1, off2, off3, off4, off5, off6, off7, off8].forEach((off) => off());
+      [off1, off2, off3, off4, off5, off6, off7, off8, off9].forEach((off) => off());
       lcuClient.disconnect();
       clearTimeout(matchDismissTimer.current);
     };

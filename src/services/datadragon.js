@@ -94,3 +94,22 @@ export function getChampionUrl(championId, version) {
   if (!key || !version) return null;
   return getChampionImageUrl(key, version);
 }
+
+// Map LCU numeric champion key → lowercase name (e.g. 86 → "garen")
+let cachedKeyMap = null;
+export async function getChampionKeyMap(version) {
+  if (cachedKeyMap) return cachedKeyMap;
+  try {
+    const v = version || (await getLatestVersion());
+    const res = await fetch(`${DDRAGON_BASE}/cdn/${v}/data/en_US/champion.json`);
+    const data = await res.json();
+    const map = {};
+    for (const champ of Object.values(data.data)) {
+      map[parseInt(champ.key)] = champ.name.toLowerCase();
+    }
+    cachedKeyMap = map;
+    return map;
+  } catch {
+    return {};
+  }
+}
