@@ -12,4 +12,6 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  // Relative paths so Electron can load dist/index.html from the filesystem
+  base: process.env.ELECTRON === 'true' ? './' : '/',
 })

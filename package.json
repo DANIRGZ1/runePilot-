@@ -2,12 +2,17 @@
   "name": "runepilot",
   "version": "1.1.0",
   "description": "League of Legends Draft Analyzer with LCU integration and meta builds",
+  "main": "electron/main.js",
   "scripts": {
     "start": "vite",
     "server": "node server/index.js",
     "dev": "concurrently \"npm run server\" \"npm start\"",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "concurrently --kill-others \"vite\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "cross-env ELECTRON=true vite build && electron-builder",
+    "electron:build:win": "cross-env ELECTRON=true vite build && electron-builder --win",
+    "electron:build:mac": "cross-env ELECTRON=true vite build && electron-builder --mac"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -27,25 +32,60 @@
     "@vitejs/plugin-react": "^5.1.4",
     "autoprefixer": "^10.4.27",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.19",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "wait-on": "^8.0.0"
+  },
+  "build": {
+    "appId": "com.runepilot.app",
+    "productName": "RunePilot",
+    "copyright": "RunePilot — personal use only per Riot Games policy",
+    "directories": {
+      "output": "release",
+      "buildResources": "electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "server/**/*",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "electron/icon.ico",
+      "artifactName": "RunePilot-Setup-${version}.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "RunePilot",
+      "installerIcon": "electron/icon.ico",
+      "uninstallerIcon": "electron/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "electron/icon.png",
+      "artifactName": "RunePilot-${version}.dmg"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "electron/icon.png"
+    }
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
   },
   "notes": {
     "lcu": "Backend uses Riot's local LCU API for match detection — personal use only per Riot policy",
-    "data": "Champion data from Riot Data Dragon (official CDN). Builds are community-curated meta knowledge.",
-    "opgg": "op.gg has no public API. We use Riot Data Dragon + curated high-elo builds instead."
+    "data": "Champion data from Riot Data Dragon (official CDN). Builds are community-curated meta knowledge."
   }
 }
