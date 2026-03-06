@@ -1,19 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
+import { getChampionUrl } from "../services/datadragon";
 
 const ROLES_ORDER = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
-const ROLE_ICONS = {
-  TOP: "🗡️",
-  JUNGLE: "🌿",
-  MID: "⚡",
-  ADC: "🏹",
-  SUPPORT: "🛡️",
-};
+const ROLE_ICONS = { TOP: "🗡️", JUNGLE: "🌿", MID: "⚡", ADC: "🏹", SUPPORT: "🛡️" };
 
-function TeamSlot({ role, champion, onClick, isActive }) {
+function ChampionImg({ champion, ddVersion, className, fallbackClass }) {
+  const [failed, setFailed] = useState(false);
+  const src = ddVersion && !failed ? getChampionUrl(champion.id, ddVersion) : null;
+  if (src) {
+    return <img src={src} alt={champion.name} className={className} onError={() => setFailed(true)} />;
+  }
+  return <span className={fallbackClass}>{champion.icon}</span>;
+}
+
+function TeamSlot({ role, champion, onClick, isActive, onChampionClick, ddVersion }) {
+  const handleClick = () => {
+    if (champion && onChampionClick) {
+      onChampionClick(champion);
+    } else if (onClick) {
+      onClick(role);
+    }
+  };
+
   return (
     <div
-      className={`team-slot ${isActive ? "active-slot" : ""}`}
-      onClick={() => onClick && onClick(role)}
+      className={`team-slot ${isActive ? "active-slot" : ""} ${champion ? "has-champion" : ""}`}
+      onClick={handleClick}
+      title={champion ? `${champion.name} — click to view build` : `Pick ${role}`}
     >
       <div className="slot-role">
         <span>{ROLE_ICONS[role]}</span>
@@ -21,8 +34,16 @@ function TeamSlot({ role, champion, onClick, isActive }) {
       </div>
       {champion ? (
         <div className="slot-champion">
-          <span className="slot-icon">{champion.icon}</span>
-          <span className="slot-name">{champion.name}</span>
+          <ChampionImg
+            champion={champion}
+            ddVersion={ddVersion}
+            className="slot-img"
+            fallbackClass="slot-icon"
+          />
+          <div className="slot-champ-info">
+            <span className="slot-name">{champion.name}</span>
+            <span className="slot-wr">{champion.winRate}% WR</span>
+          </div>
           <span className={`damage-badge ${champion.damage.toLowerCase()}`}>
             {champion.damage}
           </span>
@@ -36,12 +57,17 @@ function TeamSlot({ role, champion, onClick, isActive }) {
   );
 }
 
-function BanSlot({ champion, onClick, index }) {
+function BanSlot({ champion, onClick, index, ddVersion }) {
   return (
     <div className="ban-slot" onClick={() => !champion && onClick && onClick(index)}>
       {champion ? (
         <>
-          <span className="ban-icon">{champion.icon}</span>
+          <ChampionImg
+            champion={champion}
+            ddVersion={ddVersion}
+            className="ban-img"
+            fallbackClass="ban-icon"
+          />
           <span className="ban-name">{champion.name}</span>
           <div className="ban-x">✕</div>
         </>
@@ -53,13 +79,8 @@ function BanSlot({ champion, onClick, index }) {
 }
 
 export default function DraftBoard({
-  blueTeam,
-  redTeam,
-  blueBans,
-  redBans,
-  activeSlot,
-  onSlotClick,
-  onBanSlotClick,
+  blueTeam, redTeam, blueBans, redBans,
+  activeSlot, onSlotClick, onBanSlotClick, onChampionClick, ddVersion,
 }) {
   return (
     <div className="draft-board">
@@ -68,12 +89,7 @@ export default function DraftBoard({
         <h2 className="team-title blue">🔵 Blue Team</h2>
         <div className="bans-row">
           {blueBans.map((ban, i) => (
-            <BanSlot
-              key={i}
-              champion={ban}
-              onClick={(idx) => onBanSlotClick("blue", idx)}
-              index={i}
-            />
+            <BanSlot key={i} champion={ban} onClick={() => onBanSlotClick("blue")} index={i} ddVersion={ddVersion} />
           ))}
         </div>
         <div className="picks-list">
@@ -83,7 +99,9 @@ export default function DraftBoard({
               role={role}
               champion={blueTeam[role]}
               onClick={(r) => onSlotClick("blue", r)}
-              isActive={activeSlot?.team === "blue" && activeSlot?.role === role}
+              isActive={activeSlot?.team === "blue" && activeSlot?.role === role && activeSlot?.type === "pick"}
+              onChampionClick={onChampionClick}
+              ddVersion={ddVersion}
             />
           ))}
         </div>
@@ -99,12 +117,7 @@ export default function DraftBoard({
         <h2 className="team-title red">🔴 Red Team</h2>
         <div className="bans-row">
           {redBans.map((ban, i) => (
-            <BanSlot
-              key={i}
-              champion={ban}
-              onClick={(idx) => onBanSlotClick("red", idx)}
-              index={i}
-            />
+            <BanSlot key={i} champion={ban} onClick={() => onBanSlotClick("red")} index={i} ddVersion={ddVersion} />
           ))}
         </div>
         <div className="picks-list">
@@ -114,7 +127,9 @@ export default function DraftBoard({
               role={role}
               champion={redTeam[role]}
               onClick={(r) => onSlotClick("red", r)}
-              isActive={activeSlot?.team === "red" && activeSlot?.role === role}
+              isActive={activeSlot?.team === "red" && activeSlot?.role === role && activeSlot?.type === "pick"}
+              onChampionClick={onChampionClick}
+              ddVersion={ddVersion}
             />
           ))}
         </div>

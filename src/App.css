@@ -576,6 +576,438 @@ body {
 }
 
 /* ===========================
+   Header Extras
+   =========================== */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lcu-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.lcu-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.lcu-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.patch-badge {
+  font-size: 10px;
+  color: var(--gold);
+  border: 1px solid rgba(200,155,60,0.4);
+  border-radius: 4px;
+  padding: 2px 7px;
+  letter-spacing: 0.5px;
+}
+
+/* ===========================
+   Champion Images
+   =========================== */
+.pool-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.pool-icon-fallback { font-size: 22px; }
+
+.slot-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  object-position: center top;
+  flex-shrink: 0;
+}
+
+.ban-img {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.slot-champ-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.slot-wr {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.has-champion:hover .slot-name::after {
+  content: " · Build →";
+  color: var(--gold);
+  opacity: 0.7;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+/* ===========================
+   Match Accept Banner
+   =========================== */
+@keyframes bannerSlideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.match-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  animation: bannerSlideDown 0.35s var(--ease);
+}
+
+.match-banner.found    { background: linear-gradient(135deg, #1a2a1a, #0d2a14); border-bottom: 2px solid #52b788; }
+.match-banner.accepted { background: linear-gradient(135deg, #1a2a1a, #0d2a14); border-bottom: 2px solid #52b788; }
+.match-banner.declined { background: linear-gradient(135deg, #2a1a1a, #2a0d0d); border-bottom: 2px solid var(--red); }
+
+.match-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.match-banner-icon { font-size: 28px; }
+
+.match-banner-content { flex: 1; }
+
+.match-banner-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
+.match-banner-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.match-banner-bar-wrap {
+  margin-top: 8px;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.match-banner-bar {
+  height: 100%;
+  background: #52b788;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+.match-banner-close {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.match-banner-close:hover { color: var(--red); border-color: var(--red); }
+
+/* ===========================
+   Build Panel
+   =========================== */
+.build-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  animation: fadeIn 0.2s var(--ease);
+}
+
+.build-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.build-champ-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.build-champ-icon { font-size: 26px; }
+
+.build-champ-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.build-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.build-tier {
+  font-size: 10px;
+  font-weight: 700;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 1px 6px;
+  letter-spacing: 0.5px;
+}
+
+.build-patch, .build-source {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.build-close-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.build-close-btn:hover { color: var(--red); border-color: var(--red); }
+
+.build-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.build-tab {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 0.2s, border-color 0.2s;
+}
+.build-tab:hover { color: var(--subtle); }
+.build-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* Items Tab */
+.build-items-section {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.build-spells {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.build-item-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.build-item-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  min-width: 70px;
+  padding-top: 3px;
+}
+
+.build-item-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.item-pill {
+  font-size: 11px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 9px;
+  color: var(--subtle);
+  white-space: nowrap;
+}
+
+.spell-pill {
+  font-size: 11px;
+  background: rgba(200,155,60,0.1);
+  border: 1px solid rgba(200,155,60,0.3);
+  border-radius: 5px;
+  padding: 3px 9px;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+.build-skill-order { display: flex; flex-direction: column; gap: 5px; }
+
+.skill-order-display { display: flex; flex-direction: column; gap: 4px; }
+
+.skill-order-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+
+.skill-maxes { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.skill-pill {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.skill-1 { background: rgba(52,211,153,0.15); color: var(--mixed); border: 1px solid rgba(52,211,153,0.3); }
+.skill-2 { background: rgba(56,189,248,0.12); color: var(--blue);  border: 1px solid rgba(56,189,248,0.2); }
+
+/* Runes Tab */
+.build-runes {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.build-rune-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.rune-tree { font-size: 13px; }
+.rune-keystone { font-size: 16px; }
+
+.rune-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.rune-pill {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--subtle);
+}
+
+.primary-rune {
+  border-color: currentColor;
+  opacity: 0.85;
+}
+
+.rune-secondary-tree {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Tips Tab */
+.build-tips {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.build-tip {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  animation: slideIn 0.2s var(--ease);
+}
+
+.tip-num {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  background: var(--gold-dim);
+  border: 1px solid rgba(200,155,60,0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.tip-text {
+  font-size: 12px;
+  color: var(--subtle);
+  line-height: 1.5;
+}
+
+.build-no-data {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Pool hint variants */
+.pool-hint.ban-hint {
+  background: rgba(248,113,113,0.08);
+  border-color: rgba(248,113,113,0.25);
+  color: var(--red);
+}
+.pool-hint.pool-hint-neutral {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+/* ===========================
    Responsive
    =========================== */
 @media (max-width: 1024px) {

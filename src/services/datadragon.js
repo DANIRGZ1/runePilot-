@@ -1,0 +1,96 @@
+/**
+ * Riot Data Dragon Service
+ * Official Riot CDN — https://developer.riotgames.com/docs/lol#data-dragon
+ * Free to use for any purpose per Riot's developer terms.
+ */
+
+const DDRAGON_BASE = 'https://ddragon.leagueoflegends.com';
+
+let cachedVersion = null;
+
+export async function getLatestVersion() {
+  if (cachedVersion) return cachedVersion;
+  try {
+    const res = await fetch(`${DDRAGON_BASE}/api/versions.json`);
+    const versions = await res.json();
+    cachedVersion = versions[0];
+    return cachedVersion;
+  } catch {
+    return '15.4.1'; // fallback
+  }
+}
+
+export function getChampionImageUrl(ddKey, version) {
+  return `${DDRAGON_BASE}/cdn/${version}/img/champion/${ddKey}.png`;
+}
+
+export function getChampionSplashUrl(ddKey) {
+  return `${DDRAGON_BASE}/cdn/img/champion/splash/${ddKey}_0.jpg`;
+}
+
+export function getItemImageUrl(itemId, version) {
+  return `${DDRAGON_BASE}/cdn/${version}/img/item/${itemId}.png`;
+}
+
+// Map internal champion IDs to Data Dragon keys
+export const DD_KEYS = {
+  'garen': 'Garen',
+  'darius': 'Darius',
+  'fiora': 'Fiora',
+  'malphite': 'Malphite',
+  'camille': 'Camille',
+  "cho'gath": 'Chogath',
+  'renekton': 'Renekton',
+  'teemo': 'Teemo',
+  'nasus': 'Nasus',
+  'jayce': 'Jayce',
+  'shen': 'Shen',
+  'urgot': 'Urgot',
+  'vi': 'Vi',
+  'hecarim': 'Hecarim',
+  'warwick': 'Warwick',
+  'lee sin': 'LeeSin',
+  'nidalee': 'Nidalee',
+  'amumu': 'Amumu',
+  'kindred': 'Kindred',
+  'master yi': 'MasterYi',
+  'ekko': 'Ekko',
+  'graves': 'Graves',
+  'nunu': 'Nunu',
+  'yasuo': 'Yasuo',
+  'zed': 'Zed',
+  'lux': 'Lux',
+  'syndra': 'Syndra',
+  'annie': 'Annie',
+  'ahri': 'Ahri',
+  'orianna': 'Orianna',
+  'veigar': 'Veigar',
+  'fizz': 'Fizz',
+  'viktor': 'Viktor',
+  'jinx': 'Jinx',
+  'caitlyn': 'Caitlyn',
+  'ezreal': 'Ezreal',
+  'jhin': 'Jhin',
+  'ashe': 'Ashe',
+  'vayne': 'Vayne',
+  'miss fortune': 'MissFortune',
+  'draven': 'Draven',
+  'tristana': 'Tristana',
+  'sivir': 'Sivir',
+  'thresh': 'Thresh',
+  'leona': 'Leona',
+  'lulu': 'Lulu',
+  'blitzcrank': 'Blitzcrank',
+  'nami': 'Nami',
+  'nautilus': 'Nautilus',
+  'soraka': 'Soraka',
+  'janna': 'Janna',
+  'morgana': 'Morgana',
+  'pyke': 'Pyke',
+};
+
+export function getChampionUrl(championId, version) {
+  const key = DD_KEYS[championId];
+  if (!key || !version) return null;
+  return getChampionImageUrl(key, version);
+}
