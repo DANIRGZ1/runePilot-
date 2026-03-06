@@ -1,5 +1,4 @@
 import React from "react";
-import ChampionCard from "./ChampionCard";
 
 const ROLES_ORDER = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
 const ROLE_ICONS = {
@@ -14,7 +13,7 @@ function TeamSlot({ role, champion, onClick, isActive }) {
   return (
     <div
       className={`team-slot ${isActive ? "active-slot" : ""}`}
-      onClick={() => !champion && onClick && onClick(role)}
+      onClick={() => onClick && onClick(role)}
     >
       <div className="slot-role">
         <span>{ROLE_ICONS[role]}</span>

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { champions } from "../data/champions";
-import ChampionCard from "./ChampionCard";
 
 const ALL_ROLES = ["ALL", "TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
 
