@@ -43,6 +43,7 @@
   "build": {
     "appId": "com.runepilot.app",
     "productName": "RunePilot",
+    "forceCodeSigning": false,
     "copyright": "RunePilot — personal use only per Riot Games policy",
     "directories": {
       "output": "release",
@@ -59,7 +60,9 @@
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
       "icon": "electron/icon.ico",
-      "artifactName": "RunePilot-Setup-${version}.exe"
+      "artifactName": "RunePilot-Setup-${version}.exe",
+      "sign": null,
+      "signingHashAlgorithms": null
     },
     "nsis": {
       "oneClick": false,
