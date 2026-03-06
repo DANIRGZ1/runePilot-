@@ -1,5 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Sidebar from "./components/Sidebar";
+import TopBar from "./components/TopBar";
+import HomeView from "./components/HomeView";
 import DraftBoard from "./components/DraftBoard";
 import ChampionPool from "./components/ChampionPool";
 import AnalysisPanel from "./components/AnalysisPanel";
@@ -8,7 +11,6 @@ import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import { lcuClient } from "./services/lcuClient";
 import { getLatestVersion } from "./services/datadragon";
 import { getAllChampions, getChampionByLcuKey } from "./services/championsService";
-import { Button } from "./components/ui/button";
 import "./App.css";
 
 const ROLES = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
@@ -19,6 +21,10 @@ const emptyTeam = () => ({ TOP: null, JUNGLE: null, MID: null, ADC: null, SUPPOR
 const emptyBans = () => Array(MAX_BANS).fill(null);
 
 export default function App() {
+  const [activeView, setActiveView] = useState('inicio');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeRegion, setActiveRegion] = useState('EUW');
+
   const [blueTeam, setBlueTeam] = useState(emptyTeam());
   const [redTeam, setRedTeam] = useState(emptyTeam());
   const [blueBans, setBlueBans] = useState(emptyBans());
@@ -29,16 +35,14 @@ export default function App() {
   const [lcuStatus, setLcuStatus] = useState('disconnected');
   const [ddVersion, setDdVersion] = useState(null);
   const [championsList, setChampionsList] = useState([]);
-  const [assignedPosition, setAssignedPosition] = useState(null); // role assigned by LCU
+  const [assignedPosition, setAssignedPosition] = useState(null);
   const matchDismissTimer = useRef(null);
 
-  // Load Data Dragon version + full champion roster on mount
   useEffect(() => {
     getLatestVersion().then(setDdVersion);
     getAllChampions().then(setChampionsList);
   }, []);
 
-  // Connect to LCU backend
   useEffect(() => {
     lcuClient.connect();
 
@@ -108,7 +112,6 @@ export default function App() {
       const blueIds = new Set(blueList.map((p) => p.cellId));
       const redIds = new Set(redList.map((p) => p.cellId));
 
-      // Detect our assigned position
       const localCellId = session.localPlayerCellId;
       const localPlayer = [...myTeam].find((p) => p.cellId === localCellId);
       const myPos = localPlayer ? POS_MAP[localPlayer.assignedPosition] : null;
@@ -126,6 +129,9 @@ export default function App() {
       setBlueBans(newBlueBans);
       setRedBans(newRedBans);
       setActiveSlot(null);
+
+      // Auto-navigate to draft when champ select is detected
+      setActiveView('draft');
     });
 
     return () => {
@@ -152,45 +158,39 @@ export default function App() {
     setSelectedChampion(null);
   }, []);
 
-  const handleBanSlotClick = useCallback(
-    (team) => {
+  const handleBanSlotClick = useCallback((team) => {
+    const bans = team === "blue" ? blueBans : redBans;
+    const emptyIndex = bans.findIndex((b) => b === null);
+    if (emptyIndex === -1) return;
+    setActiveSlot({ team, banIndex: emptyIndex, type: "ban" });
+    setSelectedChampion(null);
+  }, [blueBans, redBans]);
+
+  const handleChampionSelect = useCallback((champion) => {
+    if (!activeSlot) {
+      setSelectedChampion((prev) => (prev?.id === champion.id ? null : champion));
+      return;
+    }
+    const { team, role, banIndex, type } = activeSlot;
+
+    if (type === "pick") {
+      const setTeam = team === "blue" ? setBlueTeam : setRedTeam;
+      setTeam((prev) => ({ ...prev, [role]: champion }));
+      const currentTeam = team === "blue" ? blueTeam : redTeam;
+      const nextRole = ROLES.find((r) => r !== role && !currentTeam[r]);
+      setActiveSlot(nextRole ? { team, role: nextRole, type: "pick" } : null);
+    } else {
+      const setBans = team === "blue" ? setBlueBans : setRedBans;
+      setBans((prev) => {
+        const next = [...prev];
+        next[banIndex] = champion;
+        return next;
+      });
       const bans = team === "blue" ? blueBans : redBans;
-      const emptyIndex = bans.findIndex((b) => b === null);
-      if (emptyIndex === -1) return;
-      setActiveSlot({ team, banIndex: emptyIndex, type: "ban" });
-      setSelectedChampion(null);
-    },
-    [blueBans, redBans]
-  );
-
-  const handleChampionSelect = useCallback(
-    (champion) => {
-      if (!activeSlot) {
-        setSelectedChampion((prev) => (prev?.id === champion.id ? null : champion));
-        return;
-      }
-      const { team, role, banIndex, type } = activeSlot;
-
-      if (type === "pick") {
-        const setTeam = team === "blue" ? setBlueTeam : setRedTeam;
-        setTeam((prev) => ({ ...prev, [role]: champion }));
-        const currentTeam = team === "blue" ? blueTeam : redTeam;
-        const nextRole = ROLES.find((r) => r !== role && !currentTeam[r]);
-        setActiveSlot(nextRole ? { team, role: nextRole, type: "pick" } : null);
-      } else {
-        const setBans = team === "blue" ? setBlueBans : setRedBans;
-        setBans((prev) => {
-          const next = [...prev];
-          next[banIndex] = champion;
-          return next;
-        });
-        const bans = team === "blue" ? blueBans : redBans;
-        const nextEmpty = bans.findIndex((b, i) => i !== banIndex && b === null);
-        setActiveSlot(nextEmpty !== -1 ? { team, banIndex: nextEmpty, type: "ban" } : null);
-      }
-    },
-    [activeSlot, blueTeam, redTeam, blueBans, redBans]
-  );
+      const nextEmpty = bans.findIndex((b, i) => i !== banIndex && b === null);
+      setActiveSlot(nextEmpty !== -1 ? { team, banIndex: nextEmpty, type: "ban" } : null);
+    }
+  }, [activeSlot, blueTeam, redTeam, blueBans, redBans]);
 
   const handlePickedChampionClick = useCallback((champion) => {
     setSelectedChampion((prev) => (prev?.id === champion.id ? null : champion));
@@ -207,52 +207,16 @@ export default function App() {
     setAssignedPosition(null);
   };
 
-  const lcuDot = {
-    connected: { color: '#52b788', label: 'LoL Client Connected' },
-    disconnected: { color: '#f59e0b', label: 'Waiting for LoL Client...' },
-    unavailable: { color: '#64748b', label: 'Backend offline (run npm run server)' },
-  }[lcuStatus];
-
-  return (
-    <div className="app">
-      {matchEvent && (
-        <MatchAcceptBanner
-          event={matchEvent}
-          onDismiss={() => setMatchEvent(null)}
-        />
-      )}
-
-      <header className="app-header">
-        <div className="header-logo">
-          <span className="logo-icon">⚔️</span>
-          <span className="logo-text">RunePilot</span>
-          <span className="logo-sub">Draft Analyzer</span>
-        </div>
-        <div className="header-right">
+  const renderDraftView = () => (
+    <div className="draft-layout">
+      <div className="draft-main">
+        <div className="draft-top-bar">
+          <h2 className="draft-view-title">Draft Analyzer</h2>
           {assignedPosition && (
-            <span className="assigned-pos-badge" title="Your assigned position">
-              🎯 {assignedPosition}
-            </span>
+            <span className="assigned-pos-badge">🎯 {assignedPosition}</span>
           )}
-          <div className="lcu-status" title={lcuDot.label}>
-            <span className="lcu-dot" style={{ background: lcuDot.color }} />
-            <span className="lcu-label">{lcuDot.label}</span>
-          </div>
-          {ddVersion && (
-            <span className="patch-badge">Patch {ddVersion.split('.').slice(0, 2).join('.')}</span>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            className="border-[var(--rp-border)] text-[var(--rp-muted)] bg-transparent hover:text-[var(--red)] hover:border-[var(--red)] hover:bg-transparent text-xs h-7"
-          >
-            Reset
-          </Button>
+          <button className="reset-btn-new" onClick={handleReset}>Resetear</button>
         </div>
-      </header>
-
-      <main className="app-main">
         <section className="draft-section">
           <DraftBoard
             blueTeam={blueTeam}
@@ -266,19 +230,6 @@ export default function App() {
             ddVersion={ddVersion}
           />
         </section>
-
-        <section className="pool-section">
-          <ChampionPool
-            champions={championsList}
-            onSelect={handleChampionSelect}
-            activeSlot={activeSlot}
-            usedChampions={usedChampions}
-            bannedChampions={bannedChampionIds}
-            ddVersion={ddVersion}
-            assignedPosition={assignedPosition}
-          />
-        </section>
-
         <section className="analysis-section-wrapper">
           <AnimatePresence mode="wait">
             {selectedChampion ? (
@@ -290,9 +241,9 @@ export default function App() {
             ) : (
               <motion.div
                 key="analysis"
-                initial={{ opacity: 0, x: -30 }}
+                initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
+                exit={{ opacity: 0, x: -20 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 30 }}
               >
                 <AnalysisPanel blueTeam={blueTeam} redTeam={redTeam} />
@@ -300,7 +251,68 @@ export default function App() {
             )}
           </AnimatePresence>
         </section>
-      </main>
+      </div>
+      <aside className="pool-section">
+        <ChampionPool
+          champions={championsList}
+          onSelect={handleChampionSelect}
+          activeSlot={activeSlot}
+          usedChampions={usedChampions}
+          bannedChampions={bannedChampionIds}
+          ddVersion={ddVersion}
+          assignedPosition={assignedPosition}
+        />
+      </aside>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeView) {
+      case 'inicio':
+        return <HomeView ddVersion={ddVersion} />;
+      case 'draft':
+      case 'importar':
+        return renderDraftView();
+      default:
+        return (
+          <div className="placeholder-view">
+            <div className="placeholder-icon">🚧</div>
+            <h2>Próximamente</h2>
+            <p>Esta sección está en desarrollo.</p>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="app-wrapper">
+      {matchEvent && (
+        <MatchAcceptBanner
+          event={matchEvent}
+          onDismiss={() => setMatchEvent(null)}
+        />
+      )}
+
+      <Sidebar
+        activeView={activeView}
+        onNavigate={setActiveView}
+        lcuStatus={lcuStatus}
+        version={ddVersion ? `v${ddVersion.split('.').slice(0,2).join('.')}` : 'v2.3.1'}
+      />
+
+      <div className="app-content">
+        <TopBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          activeRegion={activeRegion}
+          onRegionChange={setActiveRegion}
+          ddVersion={ddVersion}
+        />
+
+        <main className="app-main-content">
+          {renderContent()}
+        </main>
+      </div>
     </div>
   );
 }
