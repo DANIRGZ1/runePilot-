@@ -59,6 +59,36 @@ app.get('/health', (req, res) => {
   res.json({ ok: true, lcuConnected, gameflowPhase: lastGameflowPhase });
 });
 
+// Summoner profile
+app.get('/lcu/summoner', async (req, res) => {
+  if (!lcuConnected || !lcu.credentials) return res.status(503).json({ error: 'LCU not connected' });
+  try {
+    const data = await lcu.lcuGet('/lol-summoner/v1/current-summoner');
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Ranked stats
+app.get('/lcu/ranked', async (req, res) => {
+  if (!lcuConnected || !lcu.credentials) return res.status(503).json({ error: 'LCU not connected' });
+  try {
+    const data = await lcu.lcuGet('/lol-ranked/v1/current-ranked-stats');
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Match history (last 20 games)
+app.get('/lcu/history', async (req, res) => {
+  if (!lcuConnected || !lcu.credentials) return res.status(503).json({ error: 'LCU not connected' });
+  try {
+    const summoner = await lcu.lcuGet('/lol-summoner/v1/current-summoner');
+    const puuid = summoner?.puuid;
+    if (!puuid) return res.status(404).json({ error: 'No summoner found' });
+    const data = await lcu.lcuGet(`/lol-match-history/v1/products/lol/${puuid}/matches?begIndex=0&endIndex=20`);
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Import rune page into League Client
 app.post('/lcu/runes', async (req, res) => {
   if (!lcuConnected || !lcu.credentials) {

@@ -44,9 +44,25 @@ export default function App() {
     catch { return true; }
   });
   const [importToast, setImportToast] = useState(null); // null | 'importing' | 'ok' | 'err'
+  const [playerData, setPlayerData] = useState(null); // { summoner, ranked, history }
   const lastAutoImportedRef = useRef(null);
   const matchDismissTimer = useRef(null);
   const importToastTimer = useRef(null);
+
+  const fetchPlayerData = useCallback(async () => {
+    try {
+      const [sumRes, rankRes, histRes] = await Promise.allSettled([
+        fetch('http://localhost:3001/lcu/summoner').then(r => r.json()),
+        fetch('http://localhost:3001/lcu/ranked').then(r => r.json()),
+        fetch('http://localhost:3001/lcu/history').then(r => r.json()),
+      ]);
+      setPlayerData({
+        summoner: sumRes.status  === 'fulfilled' ? sumRes.value  : null,
+        ranked:   rankRes.status === 'fulfilled' ? rankRes.value : null,
+        history:  histRes.status === 'fulfilled' ? histRes.value : null,
+      });
+    } catch { /* silent fail */ }
+  }, []);
 
   useEffect(() => {
     getLatestVersion().then(setDdVersion);
@@ -60,8 +76,9 @@ export default function App() {
     const off2 = lcuClient.on('ws_disconnected', () => setLcuStatus('unavailable'));
     const off3 = lcuClient.on('initial_state', (msg) => {
       setLcuStatus(msg.lcuConnected ? 'connected' : 'disconnected');
+      if (msg.lcuConnected) fetchPlayerData();
     });
-    const off4 = lcuClient.on('lcu_connected', () => setLcuStatus('connected'));
+    const off4 = lcuClient.on('lcu_connected', () => { setLcuStatus('connected'); fetchPlayerData(); });
     const off5 = lcuClient.on('lcu_disconnected', () => setLcuStatus('disconnected'));
     const off6 = lcuClient.on('match_found', (msg) => {
       setMatchEvent({ type: 'match_found', timer: msg.timer || 12 });
@@ -336,7 +353,7 @@ export default function App() {
   const renderContent = () => {
     switch (activeView) {
       case 'inicio':
-        return <HomeView ddVersion={ddVersion} />;
+        return <HomeView ddVersion={ddVersion} playerData={playerData} />;
       case 'draft':
       case 'importar':
         return renderDraftView();

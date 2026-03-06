@@ -1,8 +1,24 @@
 import React, { useState } from "react";
-import { getChampionImageUrl, getChampionSplashUrl, DD_KEYS } from "../services/datadragon";
+import { getChampionImageUrl, getChampionSplashUrl, DD_KEYS, ROLE_ICON_URLS } from "../services/datadragon";
 
 const ROLES_ORDER = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
-const ROLE_ICONS = { TOP: "🗡️", JUNGLE: "🌿", MID: "⚡", ADC: "🏹", SUPPORT: "🛡️" };
+
+function RoleIcon({ role, size = 20 }) {
+  const [failed, setFailed] = useState(false);
+  const url = ROLE_ICON_URLS[role];
+  if (!url || failed) return <span style={{ fontSize: 14, opacity: 0.4 }}>?</span>;
+  return (
+    <img
+      src={url}
+      alt={role}
+      width={size}
+      height={size}
+      className="role-icon-img"
+      onError={() => setFailed(true)}
+      style={{ filter: 'brightness(0) invert(1)', opacity: 0.7 }}
+    />
+  );
+}
 
 function SplashSlot({ role, champion, onClick, isActive, onChampionClick, ddVersion, team }) {
   const [splashFailed, setSplashFailed] = useState(false);
@@ -32,7 +48,7 @@ function SplashSlot({ role, champion, onClick, isActive, onChampionClick, ddVers
       <div className={`splash-gradient ${team}-gradient`} />
       <div className={`splash-content ${team}-content`}>
         <div className="splash-role">
-          <span className="splash-role-icon">{ROLE_ICONS[role]}</span>
+          <RoleIcon role={role} size={22} />
           <span className="splash-role-text">{role}</span>
         </div>
         {champion ? (
@@ -47,7 +63,7 @@ function SplashSlot({ role, champion, onClick, isActive, onChampionClick, ddVers
           </div>
         ) : (
           <div className="splash-empty">
-            <span className="splash-role-icon-lg">{ROLE_ICONS[role]}</span>
+            <RoleIcon role={role} size={32} />
             <span className="splash-pick-text">Pick {role}</span>
           </div>
         )}
