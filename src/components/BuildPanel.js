@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBuild } from '../data/builds';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { cn } from '../lib/utils';
 
 const RUNE_COLORS = {
   Precision: '#c89b3c',
@@ -77,8 +81,6 @@ function ItemRow({ label, items }) {
 }
 
 export default function BuildPanel({ champion, onClose }) {
-  const [tab, setTab] = useState('build');
-
   if (!champion) return null;
   const build = getBuild(champion.id);
 
@@ -93,7 +95,7 @@ export default function BuildPanel({ champion, onClose }) {
       >
         <div className="build-panel-header">
           <span className="build-champ-name">{champion.name}</span>
-          <button className="build-close-btn" onClick={onClose}>✕</button>
+          <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground hover:text-destructive">✕</Button>
         </div>
         <p className="build-no-data">No build data yet for this champion.</p>
       </motion.div>
@@ -122,44 +124,59 @@ export default function BuildPanel({ champion, onClose }) {
           </motion.span>
           <div>
             <span className="build-champ-name">{champion.name}</span>
-            <div className="build-meta">
-              <span className="build-tier" style={{ color: tierColor, borderColor: tierColor + '55' }}>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge
+                variant="outline"
+                className="text-[10px] px-1.5 py-0"
+                style={{ color: tierColor, borderColor: tierColor + '55' }}
+              >
                 Tier {build.tier}
-              </span>
+              </Badge>
               <span className="build-patch">Patch {build.patch}</span>
               <span className="build-source">{build.source}</span>
             </div>
           </div>
         </div>
-        <motion.button
-          className="build-close-btn"
-          onClick={onClose}
-          whileHover={{ scale: 1.15, rotate: 90 }}
+        <motion.div
+          whileHover={{ scale: 1.1, rotate: 90 }}
           whileTap={{ scale: 0.9 }}
           transition={{ type: 'spring', stiffness: 400, damping: 18 }}
         >
-          ✕
-        </motion.button>
-      </div>
-
-      <div className="build-tabs">
-        {['build', 'runes', 'tips'].map((t) => (
-          <motion.button
-            key={t}
-            className={`build-tab ${tab === t ? 'active' : ''}`}
-            onClick={() => setTab(t)}
-            whileTap={{ scale: 0.94 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           >
-            {t === 'build' ? '🛡️ Items' : t === 'runes' ? '🔮 Runes' : '💡 Tips'}
-          </motion.button>
-        ))}
+            ✕
+          </Button>
+        </motion.div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {tab === 'build' && (
+      <Tabs defaultValue="build" className="w-full">
+        <TabsList className="w-full rounded-none border-b border-[var(--rp-border)] bg-[var(--rp-card)] h-10">
+          <TabsTrigger
+            value="build"
+            className="flex-1 data-[state=active]:text-[var(--gold)] data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[var(--gold)] rounded-none text-[var(--rp-muted)] text-xs"
+          >
+            🛡️ Items
+          </TabsTrigger>
+          <TabsTrigger
+            value="runes"
+            className="flex-1 data-[state=active]:text-[var(--gold)] data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[var(--gold)] rounded-none text-[var(--rp-muted)] text-xs"
+          >
+            🔮 Runes
+          </TabsTrigger>
+          <TabsTrigger
+            value="tips"
+            className="flex-1 data-[state=active]:text-[var(--gold)] data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[var(--gold)] rounded-none text-[var(--rp-muted)] text-xs"
+          >
+            💡 Tips
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="build" asChild>
           <motion.div
-            key="build"
             className="build-items-section"
             variants={tabContentVariants}
             initial="initial"
@@ -197,11 +214,10 @@ export default function BuildPanel({ champion, onClose }) {
               </div>
             </div>
           </motion.div>
-        )}
+        </TabsContent>
 
-        {tab === 'runes' && (
+        <TabsContent value="runes" asChild>
           <motion.div
-            key="runes"
             variants={tabContentVariants}
             initial="initial"
             animate="animate"
@@ -209,11 +225,10 @@ export default function BuildPanel({ champion, onClose }) {
           >
             <RunePage runes={build.runes} />
           </motion.div>
-        )}
+        </TabsContent>
 
-        {tab === 'tips' && (
+        <TabsContent value="tips" asChild>
           <motion.div
-            key="tips"
             className="build-tips"
             variants={tabContentVariants}
             initial="initial"
@@ -233,8 +248,8 @@ export default function BuildPanel({ champion, onClose }) {
               </motion.div>
             ))}
           </motion.div>
-        )}
-      </AnimatePresence>
+        </TabsContent>
+      </Tabs>
     </motion.div>
   );
 }
