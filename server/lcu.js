@@ -8,6 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const WebSocket = require('ws');
 
 const LOCKFILE_PATHS = [
@@ -88,6 +89,9 @@ class LCUClient {
       for (const event of SUBSCRIPTIONS) {
         ws.send(JSON.stringify([5, event]));
       }
+
+      // Poll current state immediately (WS only fires on changes)
+      this.pollCurrentState();
     });
 
     ws.on('message', (data) => {
@@ -112,6 +116,42 @@ class LCUClient {
     });
 
     this.ws = ws;
+  }
+
+  lcuGet(endpoint) {
+    const { port, password } = this.credentials;
+    const auth = Buffer.from(`riot:${password}`).toString('base64');
+    return new Promise((resolve, reject) => {
+      const req = https.get(
+        { hostname: '127.0.0.1', port, path: endpoint, headers: { Authorization: `Basic ${auth}` }, rejectUnauthorized: false },
+        (res) => {
+          let body = '';
+          res.on('data', (d) => (body += d));
+          res.on('end', () => { try { resolve(JSON.parse(body)); } catch { resolve(null); } });
+        }
+      );
+      req.on('error', reject);
+    });
+  }
+
+  async pollCurrentState() {
+    try {
+      const phase = await this.lcuGet('/lol-gameflow/v1/gameflow-phase');
+      if (phase && phase !== 'None') {
+        console.log(`[LCU] Current gameflow phase → ${phase}`);
+        this.onEvent({ type: 'gameflow_phase', phase });
+      }
+      if (phase === 'ChampSelect') {
+        const session = await this.lcuGet('/lol-champ-select/v1/session');
+        if (session) {
+          const champPhase = session.timer?.phase || 'unknown';
+          const picks = [...(session.myTeam || []), ...(session.theirTeam || [])]
+            .filter((p) => p.championId).length;
+          console.log(`[LCU] Current champ select — phase: ${champPhase}, picks locked: ${picks}`);
+          this.onEvent({ type: 'champ_select_update', session });
+        }
+      }
+    } catch {}
   }
 
   handleLCUEvent(eventName, eventData) {
