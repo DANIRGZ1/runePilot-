@@ -131,10 +131,16 @@ class LCUClient {
     } else if (eventName.includes('champ-select')) {
       const session = eventData?.data;
       if (session) {
+        const phase = session.timer?.phase || 'unknown';
+        const picks = [...(session.myTeam || []), ...(session.theirTeam || [])]
+          .filter((p) => p.championId)
+          .length;
+        console.log(`[LCU] Champ select — phase: ${phase}, picks locked: ${picks}`);
         this.onEvent({ type: 'champ_select_update', session });
       }
     } else if (eventName.includes('gameflow-phase')) {
       const phase = eventData?.data;
+      console.log(`[LCU] Gameflow phase → ${phase}`);
       this.onEvent({ type: 'gameflow_phase', phase });
     }
   }
