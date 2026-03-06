@@ -1205,51 +1205,130 @@ body {
 
 .picks-list { display: flex; flex-direction: column; gap: 5px; }
 
-.team-slot {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--rp-surface);
-  border: 1px solid var(--rp-border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  cursor: pointer;
-  min-height: 52px;
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-}
-.team-slot:hover {
-  background: var(--rp-hover);
-  border-color: #c5cede;
-}
-.team-slot.active-slot {
-  border-color: var(--rp-gold);
-  background: var(--rp-gold-dim);
-  animation: pulseBlue 1.8s ease infinite;
-}
-
-.slot-role {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 36px;
-  font-size: 9px;
-  color: var(--rp-text-sub);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  gap: 1px;
-}
-.slot-role span:first-child { font-size: 16px; }
-
-.slot-champion {
+/* Team header: title + bans inline */
+.team-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-  animation: fadeIn 0.25s var(--rp-ease);
+  margin-bottom: 6px;
 }
-.slot-icon { font-size: 20px; }
-.slot-name { font-weight: 600; font-size: 13px; color: var(--rp-text); }
-.slot-empty { flex: 1; color: var(--rp-text-sub); font-size: 11px; }
+.blue-header { flex-direction: row; }
+.red-header  { flex-direction: row-reverse; }
+
+/* ===========================
+   Splash Slots — cinematic design
+   =========================== */
+.splash-slot {
+  position: relative;
+  height: 110px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.splash-slot:hover {
+  border-color: rgba(197,206,222,0.8);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+.splash-slot.active-slot {
+  border-color: var(--rp-gold);
+  animation: pulseBlue 1.8s ease infinite;
+}
+
+/* Splash art image — fills slot */
+.splash-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.4s ease;
+}
+.splash-art.mirror {
+  transform: scaleX(-1);
+}
+.splash-slot:hover .splash-art         { transform: scale(1.05); }
+.splash-slot:hover .splash-art.mirror  { transform: scaleX(-1) scale(1.05); }
+
+/* Gradient overlays for readability */
+.splash-gradient { position: absolute; inset: 0; pointer-events: none; }
+.blue-gradient {
+  background: linear-gradient(
+    to right,
+    rgba(5, 8, 20, 0.92) 0%,
+    rgba(5, 8, 20, 0.65) 40%,
+    rgba(5, 8, 20, 0.10) 100%
+  );
+}
+.red-gradient {
+  background: linear-gradient(
+    to left,
+    rgba(20, 5, 8, 0.92) 0%,
+    rgba(20, 5, 8, 0.65) 40%,
+    rgba(20, 5, 8, 0.10) 100%
+  );
+}
+
+/* Content layer */
+.splash-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 10px;
+}
+.blue-content { flex-direction: row; }
+.red-content  { flex-direction: row-reverse; text-align: right; }
+
+.splash-role {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 30px;
+}
+.splash-role-icon  { font-size: 18px; }
+.splash-role-text  {
+  font-size: 8px;
+  color: rgba(255,255,255,0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+
+.splash-champ-info { display: flex; flex-direction: column; gap: 4px; }
+.splash-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+}
+.splash-meta { display: flex; align-items: center; gap: 6px; }
+.splash-wr   { font-size: 11px; color: rgba(255,255,255,0.65); }
+
+/* Empty slot */
+.splash-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.30;
+}
+.splash-role-icon-lg { font-size: 28px; }
+.splash-pick-text {
+  font-size: 9px;
+  color: var(--rp-text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* red-content: align items right */
+.red-content .splash-champ-info { align-items: flex-end; }
+.red-content .splash-meta       { flex-direction: row-reverse; }
 
 .draft-center { display: flex; align-items: center; justify-content: center; }
 .vs-badge {
@@ -1772,11 +1851,11 @@ body {
 .slot-champ-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .slot-wr { font-size: 10px; color: var(--rp-text-muted); }
 
-.has-champion:hover .slot-name::after {
+.has-champion:hover .splash-name::after {
   content: " · Build →";
   color: var(--rp-gold);
-  opacity: 0.7;
-  font-size: 10px;
+  opacity: 0.85;
+  font-size: 11px;
   font-weight: 400;
 }
 
