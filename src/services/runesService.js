@@ -1,30 +1,43 @@
 /**
  * Runes Service
- * Fetches DataDragon runesReforged.json and builds a name→id map,
- * then maps our build rune names to LCU perk IDs for import.
+ * Fetches DataDragon runesReforged.json and builds name→id and name→icon maps.
  */
 import { getLatestVersion } from './datadragon';
 
 const DDRAGON_BASE = 'https://ddragon.leagueoflegends.com';
 
-let cachedTreeData = null;
-let cachedNameToId = null;
+let cachedTreeData    = null;
+let cachedNameToId    = null;
+let cachedIconByName  = null; // rune name → icon path
+let cachedTreeIcons   = null; // tree name → icon path
 
-async function loadRunes() {
+export async function loadRunes() {
   if (cachedTreeData) return cachedTreeData;
   const version = await getLatestVersion();
   const res = await fetch(`${DDRAGON_BASE}/cdn/${version}/data/en_US/runesReforged.json`);
-  cachedTreeData = await res.json();
-  // Build name → id map
-  cachedNameToId = {};
+  cachedTreeData  = await res.json();
+  cachedNameToId  = {};
+  cachedIconByName = {};
+  cachedTreeIcons  = {};
   for (const tree of cachedTreeData) {
+    cachedTreeIcons[tree.name] = tree.icon;
+    cachedNameToId[tree.name]  = tree.id;
     for (const slot of tree.slots) {
       for (const rune of slot.runes) {
-        cachedNameToId[rune.name] = rune.id;
+        cachedNameToId[rune.name]   = rune.id;
+        cachedIconByName[rune.name] = rune.icon;
       }
     }
   }
   return cachedTreeData;
+}
+
+export function getRuneIconPath(name) {
+  return cachedIconByName?.[name] ?? null;
+}
+
+export function getTreeIconPath(treeName) {
+  return cachedTreeIcons?.[treeName] ?? null;
 }
 
 export async function getRuneIdByName(name) {
@@ -38,24 +51,14 @@ export async function getTreeIdByName(name) {
   return tree?.id ?? null;
 }
 
-// Tree display names used in our builds.js
-const TREE_DISPLAY = {
-  Precision: 'Precision',
-  Domination: 'Domination',
-  Sorcery: 'Sorcery',
-  Resolve: 'Resolve',
-  Inspiration: 'Inspiration',
-};
-
 /**
  * Convert a build rune object (from builds.js) to LCU rune page payload.
- * Returns null if IDs can't be resolved.
  */
 export async function buildRunePayload(runeObj, championName) {
   try {
     await loadRunes();
-    const primaryId = await getTreeIdByName(TREE_DISPLAY[runeObj.primary]);
-    const secondaryId = await getTreeIdByName(TREE_DISPLAY[runeObj.secondary]);
+    const primaryId   = await getTreeIdByName(runeObj.primary);
+    const secondaryId = await getTreeIdByName(runeObj.secondary);
     if (!primaryId || !secondaryId) return null;
 
     const perks = [];
@@ -64,17 +67,13 @@ export async function buildRunePayload(runeObj, championName) {
       if (id) perks.push(id);
     }
 
-    // LCU needs exactly 9 perks (6 keystones/perks + 3 stat shards)
-    // Stat shards: 5008 (Adaptive), 5008, 5003 (Armor) or 5002 — pad with adaptive
     while (perks.length < 6) perks.push(5008);
-    const statShards = [5008, 5008, 5002]; // Adaptive, Adaptive, Armor (common)
-    const allPerks = [...perks, ...statShards];
-
+    const statShards = [5008, 5008, 5002];
     return {
       name: `RunePilot — ${championName}`,
       primaryId,
       secondaryId,
-      perks: allPerks,
+      perks: [...perks, ...statShards],
     };
   } catch {
     return null;

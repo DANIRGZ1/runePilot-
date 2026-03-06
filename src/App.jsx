@@ -302,6 +302,7 @@ export default function App() {
               <BuildPanel
                 key={selectedChampion.id}
                 champion={selectedChampion}
+                ddVersion={ddVersion}
                 onClose={() => setSelectedChampion(null)}
               />
             ) : (

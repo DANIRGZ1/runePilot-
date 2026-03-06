@@ -1751,11 +1751,10 @@ body {
 .build-tab:hover { color: var(--rp-text); }
 .build-tab.active { color: var(--rp-gold); border-bottom-color: var(--rp-gold); }
 
-.build-items-section { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-
-.build-spells { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
-.build-item-row { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+/* ===========================
+   Build Items — icon grid
+   =========================== */
+.build-items-section { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
 
 .build-item-label {
   font-size: 10px;
@@ -1763,32 +1762,82 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--rp-text-muted);
-  min-width: 70px;
-  padding-top: 3px;
+  margin-bottom: 5px;
+  display: block;
 }
 
-.build-item-list { display: flex; flex-wrap: wrap; gap: 5px; }
+/* Summoner spells */
+.build-spells  { display: flex; flex-direction: column; }
+.build-spell-icons { display: flex; gap: 6px; }
 
-.item-pill {
-  font-size: 11px;
+.spell-icon-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid rgba(200,155,60,0.4);
   background: var(--rp-surface);
-  border: 1px solid var(--rp-border);
-  border-radius: 5px;
-  padding: 3px 9px;
-  color: var(--rp-text-muted);
-  white-space: nowrap;
+  flex-shrink: 0;
 }
-
-.spell-pill {
-  font-size: 11px;
-  background: var(--rp-gold-dim);
-  border: 1px solid rgba(200,155,60,0.3);
-  border-radius: 5px;
-  padding: 3px 9px;
+.spell-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.spell-text {
+  font-size: 9px;
   color: var(--rp-gold);
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2px;
+  text-align: center;
+  line-height: 1.2;
 }
 
+/* Item icons */
+.build-item-group { display: flex; flex-direction: column; }
+.build-item-icons { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.item-icon-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-surface);
+  flex-shrink: 0;
+  transition: border-color 0.15s, transform 0.15s;
+  cursor: default;
+}
+.item-icon-wrap:hover {
+  border-color: var(--rp-gold);
+  transform: scale(1.08);
+  z-index: 1;
+}
+.item-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.item-text {
+  font-size: 8px;
+  color: var(--rp-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Skill order */
 .build-skill-order { display: flex; flex-direction: column; gap: 5px; }
 .skill-order-display { display: flex; flex-direction: column; gap: 4px; }
 .skill-order-text { font-size: 13px; font-weight: 700; color: var(--rp-text); letter-spacing: 1px; }
@@ -1803,22 +1852,93 @@ body {
 .skill-1 { background: rgba(16,185,129,0.12); color: var(--rp-mixed); border: 1px solid rgba(16,185,129,0.3); }
 .skill-2 { background: rgba(59,130,246,0.10); color: var(--rp-blue);  border: 1px solid rgba(59,130,246,0.25); }
 
-.build-runes { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-.build-rune-header { display: flex; align-items: center; gap: 10px; font-weight: 700; }
-.rune-tree { font-size: 13px; }
-.rune-keystone { font-size: 16px; }
-.rune-list { display: flex; flex-wrap: wrap; gap: 5px; }
-
-.rune-pill {
-  font-size: 11px;
-  padding: 3px 9px;
-  border-radius: 5px;
-  background: var(--rp-surface);
-  border: 1px solid var(--rp-border);
-  color: var(--rp-text-muted);
+/* ===========================
+   Rune Page — visual icons
+   =========================== */
+.rune-page {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
-.primary-rune { border-color: currentColor; opacity: 0.85; }
-.rune-secondary-tree { font-size: 11px; font-weight: 600; }
+
+.rune-tree-section { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
+.rune-tree-section.secondary { }
+
+.rune-tree-divider {
+  height: 1px;
+  background: var(--rp-border);
+  margin: 2px 0;
+}
+
+.rune-tree-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.tree-icon-wrap { width: 20px; height: 20px; flex-shrink: 0; }
+.tree-icon-img  { width: 100%; height: 100%; object-fit: contain; }
+
+/* Keystone */
+.rune-keystone-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rune-keystone-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Rune icon wrapper */
+.rune-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.06);
+  border: 1px solid var(--rp-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.rune-icon-wrap.keystone {
+  width: 42px;
+  height: 42px;
+  border-width: 2px;
+  border-color: var(--rp-gold);
+  box-shadow: 0 0 8px rgba(200,155,60,0.3);
+}
+.rune-icon-img { width: 100%; height: 100%; object-fit: cover; }
+.rune-fallback { font-size: 14px; opacity: 0.4; }
+
+/* Primary rune row */
+.rune-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rune-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 54px;
+}
+.rune-entry-name {
+  font-size: 8px;
+  color: var(--rp-text-muted);
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+}
 
 .build-tips { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
 

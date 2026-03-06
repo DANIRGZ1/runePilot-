@@ -32,6 +32,41 @@ export function getItemImageUrl(itemId, version) {
   return `${DDRAGON_BASE}/cdn/${version}/img/item/${itemId}.png`;
 }
 
+export function getRuneIconUrl(iconPath) {
+  return `${DDRAGON_BASE}/cdn/img/${iconPath}`;
+}
+
+export function getSpellImageUrl(spellKey, version) {
+  return `${DDRAGON_BASE}/cdn/${version}/img/spell/${spellKey}.png`;
+}
+
+const SPELL_KEYS = {
+  'Flash':     'SummonerFlash',
+  'Teleport':  'SummonerTeleport',
+  'Ignite':    'SummonerDot',
+  'Ghost':     'SummonerHaste',
+  'Exhaust':   'SummonerExhaust',
+  'Barrier':   'SummonerBarrier',
+  'Heal':      'SummonerHeal',
+  'Smite':     'SummonerSmite',
+  'Cleanse':   'SummonerBoost',
+  'Mark':      'SummonerSnowball',
+};
+export function getSpellKey(name) { return SPELL_KEYS[name] ?? null; }
+
+let cachedItemsMap = null;
+export async function loadItemsData(version) {
+  if (cachedItemsMap) return cachedItemsMap;
+  const v = version || await getLatestVersion();
+  const res = await fetch(`${DDRAGON_BASE}/cdn/${v}/data/en_US/item.json`);
+  const data = await res.json();
+  cachedItemsMap = {};
+  for (const [id, item] of Object.entries(data.data)) {
+    cachedItemsMap[item.name.toLowerCase()] = id;
+  }
+  return cachedItemsMap;
+}
+
 // Map internal champion IDs to Data Dragon keys
 export const DD_KEYS = {
   'garen': 'Garen',
