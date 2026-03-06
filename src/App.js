@@ -7,6 +7,7 @@ import BuildPanel from "./components/BuildPanel";
 import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import { lcuClient } from "./services/lcuClient";
 import { getLatestVersion } from "./services/datadragon";
+import { Button } from "./components/ui/button";
 import "./App.css";
 
 const ROLES = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
@@ -167,7 +168,14 @@ export default function App() {
           {ddVersion && (
             <span className="patch-badge">Patch {ddVersion.split('.').slice(0, 2).join('.')}</span>
           )}
-          <button className="reset-btn" onClick={handleReset}>Reset</button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReset}
+            className="border-[var(--rp-border)] text-[var(--rp-muted)] bg-transparent hover:text-[var(--red)] hover:border-[var(--red)] hover:bg-transparent text-xs h-7"
+          >
+            Reset
+          </Button>
         </div>
       </header>
 

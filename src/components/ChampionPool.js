@@ -64,8 +64,8 @@ export default function ChampionPool({
   return (
     <div className="champion-pool">
       <div className="pool-header">
-        <input
-          className="search-input"
+        <Input
+          className="search-input bg-[var(--rp-card)] border-[var(--rp-border)] text-[var(--text)] placeholder:text-[var(--rp-muted)] focus-visible:ring-[var(--gold)] focus-visible:border-[var(--gold)] h-8 text-xs"
           type="text"
           placeholder="Search champion..."
           value={search}
