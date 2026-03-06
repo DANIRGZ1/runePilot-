@@ -1,8 +1,21 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { champions } from "../data/champions";
 import { getChampionUrl } from "../services/datadragon";
 
 const ALL_ROLES = ["ALL", "TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.018 },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.8, y: 8 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 380, damping: 22 } },
+};
 
 function ChampionImg({ champion, ddVersion, className }) {
   const [imgFailed, setImgFailed] = useState(false);
@@ -58,46 +71,73 @@ export default function ChampionPool({
         />
         <div className="role-filters">
           {ALL_ROLES.map((role) => (
-            <button
+            <motion.button
               key={role}
               className={`role-filter-btn ${filter === role ? "active" : ""}`}
               onClick={() => setFilter(role)}
+              whileTap={{ scale: 0.92 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
             >
               {role}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
 
-      {hintText && (
-        <div className={`pool-hint ${activeSlot?.type === "ban" ? "ban-hint" : ""}`}>
-          {hintText}
-        </div>
-      )}
-      {!activeSlot && (
-        <div className="pool-hint pool-hint-neutral">
-          Click a slot to pick/ban — or tap a champion to view builds
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {hintText ? (
+          <motion.div
+            key="hint-active"
+            className={`pool-hint ${activeSlot?.type === "ban" ? "ban-hint" : ""}`}
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+          >
+            {hintText}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="hint-neutral"
+            className="pool-hint pool-hint-neutral"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+          >
+            Click a slot to pick/ban — or tap a champion to view builds
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="champions-grid">
+      <motion.div
+        className="champions-grid"
+        key={filter + search}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {visible.map((champ) => {
           const unavailable = isUnavailable(champ);
           const isBanned = bannedChampions.includes(champ.id);
           return (
-            <button
+            <motion.button
               key={champ.id}
               className={`pool-champion ${unavailable ? "unavailable" : ""}`}
               onClick={() => onSelect(champ)}
               title={unavailable ? "Already picked or banned" : champ.name}
+              variants={cardVariants}
+              whileHover={!unavailable ? { scale: 1.08, y: -3 } : {}}
+              whileTap={!unavailable ? { scale: 0.94 } : {}}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
             >
               <ChampionImg champion={champ} ddVersion={ddVersion} className="pool-img" />
               <span className="pool-name">{champ.name}</span>
               {isBanned && <span className="pool-banned-overlay">✕</span>}
-            </button>
+            </motion.button>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }

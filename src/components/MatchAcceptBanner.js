@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MatchAcceptBanner({ event, onDismiss }) {
   const [progress, setProgress] = useState(100);
@@ -22,37 +23,54 @@ export default function MatchAcceptBanner({ event, onDismiss }) {
     return () => clearInterval(interval);
   }, [event, onDismiss]);
 
-  if (!event) return null;
-
-  const isMatchFound = event.type === 'match_found';
-  const isAccepted  = event.type === 'match_accepted';
-  const isDeclined  = event.type === 'match_declined';
+  const isMatchFound = event?.type === 'match_found';
+  const isAccepted  = event?.type === 'match_accepted';
+  const isDeclined  = event?.type === 'match_declined';
 
   return (
-    <div className={`match-banner ${isAccepted ? 'accepted' : isDeclined ? 'declined' : 'found'}`}>
-      <div className="match-banner-inner">
-        <div className="match-banner-icon">
-          {isAccepted ? '✅' : isDeclined ? '❌' : '⚔️'}
-        </div>
-        <div className="match-banner-content">
-          <div className="match-banner-title">
-            {isAccepted ? 'Match Accepted!' : isDeclined ? 'Match Cancelled' : 'Match Found!'}
-          </div>
-          <div className="match-banner-sub">
-            {isMatchFound
-              ? 'A game has been found. Accept in the League client.'
-              : isAccepted
-              ? 'All players accepted — heading to champion select'
-              : 'A player declined. Re-queuing...'}
-          </div>
-          {isMatchFound && (
-            <div className="match-banner-bar-wrap">
-              <div className="match-banner-bar" style={{ width: `${progress}%` }} />
+    <AnimatePresence>
+      {event && (
+        <motion.div
+          className={`match-banner ${isAccepted ? 'accepted' : isDeclined ? 'declined' : 'found'}`}
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        >
+          <div className="match-banner-inner">
+            <motion.div
+              className="match-banner-icon"
+              initial={{ scale: 0.5, rotate: -15 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 20, delay: 0.1 }}
+            >
+              {isAccepted ? '✅' : isDeclined ? '❌' : '⚔️'}
+            </motion.div>
+            <div className="match-banner-content">
+              <div className="match-banner-title">
+                {isAccepted ? 'Match Accepted!' : isDeclined ? 'Match Cancelled' : 'Match Found!'}
+              </div>
+              <div className="match-banner-sub">
+                {isMatchFound
+                  ? 'A game has been found. Accept in the League client.'
+                  : isAccepted
+                  ? 'All players accepted — heading to champion select'
+                  : 'A player declined. Re-queuing...'}
+              </div>
+              {isMatchFound && (
+                <div className="match-banner-bar-wrap">
+                  <motion.div
+                    className="match-banner-bar"
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.1, ease: 'linear' }}
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <button className="match-banner-close" onClick={onDismiss}>✕</button>
-      </div>
-    </div>
+            <button className="match-banner-close" onClick={onDismiss}>✕</button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

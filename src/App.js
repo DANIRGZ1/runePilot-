@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import DraftBoard from "./components/DraftBoard";
 import ChampionPool from "./components/ChampionPool";
 import AnalysisPanel from "./components/AnalysisPanel";
@@ -196,14 +197,25 @@ export default function App() {
         </section>
 
         <section className="analysis-section-wrapper">
-          {selectedChampion ? (
-            <BuildPanel
-              champion={selectedChampion}
-              onClose={() => setSelectedChampion(null)}
-            />
-          ) : (
-            <AnalysisPanel blueTeam={blueTeam} redTeam={redTeam} />
-          )}
+          <AnimatePresence mode="wait">
+            {selectedChampion ? (
+              <BuildPanel
+                key={selectedChampion.id}
+                champion={selectedChampion}
+                onClose={() => setSelectedChampion(null)}
+              />
+            ) : (
+              <motion.div
+                key="analysis"
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+              >
+                <AnalysisPanel blueTeam={blueTeam} redTeam={redTeam} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </section>
       </main>
     </div>
