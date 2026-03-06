@@ -6,7 +6,13 @@ export default defineConfig({
   plugins: [react()],
   esbuild: {
     loader: 'jsx',
-    include: /src\/.*\.js$/,
+    include: /.*\.js$/,
+    exclude: [],
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: { '.js': 'jsx' },
+    },
   },
   resolve: {
     alias: {
