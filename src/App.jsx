@@ -11,6 +11,8 @@ import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import { lcuClient } from "./services/lcuClient";
 import { getLatestVersion } from "./services/datadragon";
 import { getAllChampions, getChampionByLcuKey } from "./services/championsService";
+import { getBuild } from "./data/builds";
+import { buildRunePayload } from "./services/runesService";
 import "./App.css";
 
 const ROLES = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
@@ -36,7 +38,15 @@ export default function App() {
   const [ddVersion, setDdVersion] = useState(null);
   const [championsList, setChampionsList] = useState([]);
   const [assignedPosition, setAssignedPosition] = useState(null);
+  const [localLockedChampId, setLocalLockedChampId] = useState(null);
+  const [autoImportEnabled, setAutoImportEnabled] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('rp_autoImport') ?? 'true'); }
+    catch { return true; }
+  });
+  const [importToast, setImportToast] = useState(null); // null | 'importing' | 'ok' | 'err'
+  const lastAutoImportedRef = useRef(null);
   const matchDismissTimer = useRef(null);
+  const importToastTimer = useRef(null);
 
   useEffect(() => {
     getLatestVersion().then(setDdVersion);
@@ -116,6 +126,7 @@ export default function App() {
       const localPlayer = [...myTeam].find((p) => p.cellId === localCellId);
       const myPos = localPlayer ? POS_MAP[localPlayer.assignedPosition] : null;
       if (myPos) setAssignedPosition(myPos);
+      if (localPlayer?.championId) setLocalLockedChampId(localPlayer.championId);
 
       const [newBlue, newRed, newBlueBans, newRedBans] = await Promise.all([
         parseTeam(blueList),
@@ -140,6 +151,36 @@ export default function App() {
       clearTimeout(matchDismissTimer.current);
     };
   }, []);
+
+  // Auto-import runes when local player locks a champion
+  useEffect(() => {
+    if (!localLockedChampId || !autoImportEnabled) return;
+    if (lastAutoImportedRef.current === localLockedChampId) return;
+    lastAutoImportedRef.current = localLockedChampId;
+
+    (async () => {
+      const champion = await getChampionByLcuKey(localLockedChampId);
+      if (!champion) return;
+      const build = getBuild(champion.id);
+      if (!build) return;
+
+      clearTimeout(importToastTimer.current);
+      setImportToast('importing');
+      try {
+        const payload = await buildRunePayload(build.runes, champion.name);
+        if (!payload) { setImportToast('err'); importToastTimer.current = setTimeout(() => setImportToast(null), 3500); return; }
+        const res = await fetch('http://localhost:3001/lcu/runes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        setImportToast(res.ok ? 'ok' : 'err');
+      } catch {
+        setImportToast('err');
+      }
+      importToastTimer.current = setTimeout(() => setImportToast(null), 4000);
+    })();
+  }, [localLockedChampId, autoImportEnabled]);
 
   const usedChampions = [
     ...Object.values(blueTeam).filter(Boolean).map((c) => c.id),
@@ -197,6 +238,14 @@ export default function App() {
     setActiveSlot(null);
   }, []);
 
+  const handleToggleAutoImport = () => {
+    setAutoImportEnabled(prev => {
+      const next = !prev;
+      localStorage.setItem('rp_autoImport', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleReset = () => {
     setBlueTeam(emptyTeam());
     setRedTeam(emptyTeam());
@@ -205,6 +254,9 @@ export default function App() {
     setActiveSlot(null);
     setSelectedChampion(null);
     setAssignedPosition(null);
+    setLocalLockedChampId(null);
+    lastAutoImportedRef.current = null;
+    setImportToast(null);
   };
 
   const renderDraftView = () => (
@@ -215,6 +267,20 @@ export default function App() {
           {assignedPosition && (
             <span className="assigned-pos-badge">🎯 {assignedPosition}</span>
           )}
+          {importToast && (
+            <span className={`import-toast import-toast-${importToast}`}>
+              {importToast === 'importing' && '⏳ Importando runas…'}
+              {importToast === 'ok'        && '✅ Runas importadas'}
+              {importToast === 'err'       && '❌ Error al importar'}
+            </span>
+          )}
+          <button
+            className={`auto-import-toggle ${autoImportEnabled ? 'enabled' : 'disabled'}`}
+            onClick={handleToggleAutoImport}
+            title={autoImportEnabled ? 'Auto-importación activada — click para desactivar' : 'Auto-importación desactivada — click para activar'}
+          >
+            {autoImportEnabled ? '📥 Auto ON' : '📥 Auto OFF'}
+          </button>
           <button className="reset-btn-new" onClick={handleReset}>Resetear</button>
         </div>
         <section className="draft-section">

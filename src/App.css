@@ -1148,6 +1148,60 @@ body {
   border-color: var(--rp-red);
 }
 
+/* Auto-import toggle */
+.auto-import-toggle {
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.auto-import-toggle.enabled {
+  background: rgba(200,155,60,0.12);
+  border-color: var(--rp-gold);
+  color: var(--rp-gold);
+}
+.auto-import-toggle.enabled:hover {
+  background: rgba(200,155,60,0.22);
+}
+.auto-import-toggle.disabled {
+  background: transparent;
+  border-color: var(--rp-border);
+  color: var(--rp-text-muted);
+}
+.auto-import-toggle.disabled:hover {
+  border-color: var(--rp-gold);
+  color: var(--rp-gold);
+}
+
+/* Import toast */
+.import-toast {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid;
+  animation: fadeIn 0.2s ease;
+  white-space: nowrap;
+}
+.import-toast-importing {
+  background: rgba(59,130,246,0.10);
+  border-color: rgba(59,130,246,0.35);
+  color: var(--rp-blue);
+}
+.import-toast-ok {
+  background: rgba(16,185,129,0.10);
+  border-color: rgba(16,185,129,0.35);
+  color: #10b981;
+}
+.import-toast-err {
+  background: rgba(232,64,87,0.10);
+  border-color: rgba(232,64,87,0.35);
+  color: var(--rp-red);
+}
+
 /* ===========================
    Draft Board (light overrides)
    =========================== */
