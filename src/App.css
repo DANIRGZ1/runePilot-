@@ -1054,3 +1054,75 @@ body {
   .draft-center   { display: none; }
   .analysis-teams { grid-template-columns: 1fr; }
 }
+
+/* ── WinRate badge in pool ───────────────────────────────── */
+.pool-wr-badge {
+  font-size: 8px;
+  font-weight: 700;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 0 3px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+/* ── Position recommendations ────────────────────────────── */
+.pool-recommendations {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rp-border);
+  margin-bottom: 4px;
+}
+.pool-rec-title {
+  font-size: 10px;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+.pool-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.pool-champion-rec {
+  border-color: var(--gold) !important;
+  background: rgba(200,155,60,0.08) !important;
+}
+
+/* ── Assigned role filter highlight ─────────────────────── */
+.role-filter-btn.assigned-role {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+.role-filter-btn.assigned-role.active {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+/* ── BuildPanel rune import ──────────────────────────────── */
+.build-rune-import {
+  padding: 8px 12px 12px;
+  display: flex;
+  justify-content: center;
+}
+.build-import-btn {
+  width: 100%;
+  font-size: 11px;
+  background: rgba(200,155,60,0.15) !important;
+  border: 1px solid rgba(200,155,60,0.5) !important;
+  color: var(--gold) !important;
+}
+.build-import-btn:hover {
+  background: rgba(200,155,60,0.3) !important;
+}
+
+/* ── Assigned position badge in header ───────────────────── */
+.assigned-pos-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+  background: rgba(200,155,60,0.15);
+  border: 1px solid rgba(200,155,60,0.4);
+  border-radius: 5px;
+  padding: 2px 8px;
+}

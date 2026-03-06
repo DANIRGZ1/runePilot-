@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBuild } from '../data/builds';
+import { buildRunePayload } from '../services/runesService';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -81,8 +82,29 @@ function ItemRow({ label, items }) {
 }
 
 export default function BuildPanel({ champion, onClose }) {
+  const [runeImportState, setRuneImportState] = useState('idle'); // 'idle'|'loading'|'ok'|'err'
+
   if (!champion) return null;
   const build = getBuild(champion.id);
+
+  async function handleImportRunes() {
+    if (!build) return;
+    setRuneImportState('loading');
+    try {
+      const payload = await buildRunePayload(build.runes, champion.name);
+      if (!payload) { setRuneImportState('err'); return; }
+      const res = await fetch('http://localhost:3001/lcu/runes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      setRuneImportState(res.ok ? 'ok' : 'err');
+      setTimeout(() => setRuneImportState('idle'), 3000);
+    } catch {
+      setRuneImportState('err');
+      setTimeout(() => setRuneImportState('idle'), 3000);
+    }
+  }
 
   if (!build) {
     return (
@@ -224,6 +246,19 @@ export default function BuildPanel({ champion, onClose }) {
             exit="exit"
           >
             <RunePage runes={build.runes} />
+            <div className="build-rune-import">
+              <Button
+                size="sm"
+                onClick={handleImportRunes}
+                disabled={runeImportState === 'loading'}
+                className="build-import-btn"
+              >
+                {runeImportState === 'loading' ? '⏳ Importing...' :
+                 runeImportState === 'ok'      ? '✅ Imported!' :
+                 runeImportState === 'err'     ? '❌ Failed' :
+                 '📥 Import to LoL Client'}
+              </Button>
+            </div>
           </motion.div>
         </TabsContent>
 

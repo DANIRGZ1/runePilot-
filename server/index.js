@@ -59,6 +59,40 @@ app.get('/health', (req, res) => {
   res.json({ ok: true, lcuConnected, gameflowPhase: lastGameflowPhase });
 });
 
+// Import rune page into League Client
+app.post('/lcu/runes', async (req, res) => {
+  if (!lcuConnected || !lcu.credentials) {
+    return res.status(503).json({ error: 'LCU not connected' });
+  }
+  const { name, primaryId, secondaryId, perks } = req.body;
+  if (!primaryId || !secondaryId || !perks) {
+    return res.status(400).json({ error: 'Missing rune page data' });
+  }
+  try {
+    // Delete existing page with same name if it exists
+    const pages = await lcu.lcuGet('/lol-perks/v1/pages');
+    if (Array.isArray(pages)) {
+      const existing = pages.find(p => p.name === name && !p.isActive);
+      if (existing) {
+        await lcu.lcuDelete(`/lol-perks/v1/pages/${existing.id}`);
+      }
+    }
+    // Create new page
+    const result = await lcu.lcuPost('/lol-perks/v1/pages', {
+      name,
+      primaryStyleId: primaryId,
+      subStyleId: secondaryId,
+      selectedPerkIds: perks,
+      isEditable: true,
+    });
+    console.log(`[LCU] Rune page "${name}" imported`);
+    res.json({ ok: true, page: result });
+  } catch (e) {
+    console.error('[LCU] Rune import failed:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`[RunePilot] Backend on http://localhost:${PORT}`);

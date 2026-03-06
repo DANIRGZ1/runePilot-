@@ -118,21 +118,37 @@ class LCUClient {
     this.ws = ws;
   }
 
-  lcuGet(endpoint) {
+  _lcuRequest(method, endpoint, body) {
     const { port, password } = this.credentials;
     const auth = Buffer.from(`riot:${password}`).toString('base64');
+    const data = body ? JSON.stringify(body) : null;
     return new Promise((resolve, reject) => {
-      const req = https.get(
-        { hostname: '127.0.0.1', port, path: endpoint, headers: { Authorization: `Basic ${auth}` }, rejectUnauthorized: false },
-        (res) => {
-          let body = '';
-          res.on('data', (d) => (body += d));
-          res.on('end', () => { try { resolve(JSON.parse(body)); } catch { resolve(null); } });
-        }
-      );
+      const options = {
+        hostname: '127.0.0.1',
+        port,
+        path: endpoint,
+        method,
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/json',
+          ...(data ? { 'Content-Length': Buffer.byteLength(data) } : {}),
+        },
+        rejectUnauthorized: false,
+      };
+      const req = https.request(options, (res) => {
+        let b = '';
+        res.on('data', (d) => (b += d));
+        res.on('end', () => { try { resolve(b ? JSON.parse(b) : null); } catch { resolve(null); } });
+      });
       req.on('error', reject);
+      if (data) req.write(data);
+      req.end();
     });
   }
+
+  lcuGet(endpoint) { return this._lcuRequest('GET', endpoint); }
+  lcuPost(endpoint, body) { return this._lcuRequest('POST', endpoint, body); }
+  lcuDelete(endpoint) { return this._lcuRequest('DELETE', endpoint); }
 
   async pollCurrentState() {
     try {

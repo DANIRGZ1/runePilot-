@@ -1,16 +1,18 @@
 import React, { useState } from "react";
-import { getChampionUrl } from "../services/datadragon";
+import { getChampionImageUrl, DD_KEYS } from "../services/datadragon";
 
 const ROLES_ORDER = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
 const ROLE_ICONS = { TOP: "🗡️", JUNGLE: "🌿", MID: "⚡", ADC: "🏹", SUPPORT: "🛡️" };
 
 function ChampionImg({ champion, ddVersion, className, fallbackClass }) {
   const [failed, setFailed] = useState(false);
-  const src = ddVersion && !failed ? getChampionUrl(champion.id, ddVersion) : null;
+  // Prefer ddKey (dynamic champions) then fall back to DD_KEYS map (static)
+  const key = champion.ddKey || DD_KEYS[champion.id];
+  const src = ddVersion && key && !failed ? getChampionImageUrl(key, ddVersion) : null;
   if (src) {
     return <img src={src} alt={champion.name} className={className} onError={() => setFailed(true)} />;
   }
-  return <span className={fallbackClass}>{champion.icon}</span>;
+  return <span className={fallbackClass}>{champion.icon || '⚔️'}</span>;
 }
 
 function TeamSlot({ role, champion, onClick, isActive, onChampionClick, ddVersion }) {

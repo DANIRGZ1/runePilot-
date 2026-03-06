@@ -1,17 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { champions } from "../data/champions";
-import { getChampionUrl } from "../services/datadragon";
+import { getChampionImageUrl } from "../services/datadragon";
 import { Input } from "./ui/input";
-import { Button } from "./ui/button";
 
 const ALL_ROLES = ["ALL", "TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
 
 const containerVariants = {
   hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.018 },
-  },
+  visible: { transition: { staggerChildren: 0.012 } },
 };
 
 const cardVariants = {
@@ -21,7 +17,9 @@ const cardVariants = {
 
 function ChampionImg({ champion, ddVersion, className }) {
   const [imgFailed, setImgFailed] = useState(false);
-  const src = ddVersion && !imgFailed ? getChampionUrl(champion.id, ddVersion) : null;
+  const src = ddVersion && champion.ddKey && !imgFailed
+    ? getChampionImageUrl(champion.ddKey, ddVersion)
+    : null;
 
   if (src) {
     return (
@@ -33,24 +31,55 @@ function ChampionImg({ champion, ddVersion, className }) {
       />
     );
   }
-  return <span className="pool-icon-fallback">{champion.icon}</span>;
+  return <span className="pool-icon-fallback">{champion.icon || '⚔️'}</span>;
+}
+
+function WinRateBadge({ winRate }) {
+  if (winRate == null) return null;
+  const color =
+    winRate >= 53 ? '#52b788' :
+    winRate >= 50 ? '#c89b3c' :
+    '#ef4444';
+  return (
+    <span className="pool-wr-badge" style={{ color, borderColor: color + '44' }}>
+      {winRate.toFixed(1)}%
+    </span>
+  );
 }
 
 export default function ChampionPool({
+  champions = [],
   onSelect,
   activeSlot,
   usedChampions,
   bannedChampions,
   ddVersion,
+  assignedPosition,
 }) {
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
 
-  const visible = champions.filter((c) => {
-    const matchRole = filter === "ALL" || c.role === filter;
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase());
-    return matchRole && matchSearch;
-  });
+  // When assignedPosition arrives, default the filter to that role
+  React.useEffect(() => {
+    if (assignedPosition) setFilter(assignedPosition);
+  }, [assignedPosition]);
+
+  const visible = useMemo(() => {
+    return champions.filter((c) => {
+      const matchRole = filter === "ALL" || c.role === filter;
+      const matchSearch = c.name.toLowerCase().includes(search.toLowerCase());
+      return matchRole && matchSearch;
+    });
+  }, [champions, filter, search]);
+
+  // Top picks for assigned position: sorted by winRate desc
+  const topPicks = useMemo(() => {
+    if (!assignedPosition || filter !== assignedPosition) return [];
+    return [...visible]
+      .filter((c) => c.winRate != null && !usedChampions.includes(c.id) && !bannedChampions.includes(c.id))
+      .sort((a, b) => b.winRate - a.winRate)
+      .slice(0, 6);
+  }, [assignedPosition, filter, visible, usedChampions, bannedChampions]);
 
   const isUnavailable = (c) =>
     usedChampions.includes(c.id) || bannedChampions.includes(c.id);
@@ -75,12 +104,12 @@ export default function ChampionPool({
           {ALL_ROLES.map((role) => (
             <motion.button
               key={role}
-              className={`role-filter-btn ${filter === role ? "active" : ""}`}
+              className={`role-filter-btn ${filter === role ? "active" : ""} ${role === assignedPosition ? "assigned-role" : ""}`}
               onClick={() => setFilter(role)}
               whileTap={{ scale: 0.92 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
             >
-              {role}
+              {role === assignedPosition ? `★ ${role}` : role}
             </motion.button>
           ))}
         </div>
@@ -107,10 +136,36 @@ export default function ChampionPool({
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
           >
-            Click a slot to pick/ban — or tap a champion to view builds
+            {assignedPosition
+              ? `Your role: ${assignedPosition} — click a champion to view builds`
+              : "Click a slot to pick/ban — or tap a champion to view builds"}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Recommended picks for assigned position */}
+      {topPicks.length > 0 && (
+        <div className="pool-recommendations">
+          <div className="pool-rec-title">⭐ Top picks for {assignedPosition}</div>
+          <div className="pool-rec-grid">
+            {topPicks.map((champ) => (
+              <motion.button
+                key={champ.id}
+                className="pool-champion pool-champion-rec"
+                onClick={() => onSelect(champ)}
+                title={`${champ.name} — ${champ.winRate}% WR`}
+                whileHover={{ scale: 1.08, y: -3 }}
+                whileTap={{ scale: 0.94 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              >
+                <ChampionImg champion={champ} ddVersion={ddVersion} className="pool-img" />
+                <span className="pool-name">{champ.name}</span>
+                <WinRateBadge winRate={champ.winRate} />
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <motion.div
         className="champions-grid"
@@ -121,13 +176,12 @@ export default function ChampionPool({
       >
         {visible.map((champ) => {
           const unavailable = isUnavailable(champ);
-          const isBanned = bannedChampions.includes(champ.id);
           return (
             <motion.button
               key={champ.id}
               className={`pool-champion ${unavailable ? "unavailable" : ""}`}
               onClick={() => onSelect(champ)}
-              title={unavailable ? "Already picked or banned" : champ.name}
+              title={unavailable ? "Already picked or banned" : `${champ.name}${champ.winRate ? ` — ${champ.winRate}% WR` : ''}`}
               variants={cardVariants}
               whileHover={!unavailable ? { scale: 1.08, y: -3 } : {}}
               whileTap={!unavailable ? { scale: 0.94 } : {}}
@@ -135,7 +189,8 @@ export default function ChampionPool({
             >
               <ChampionImg champion={champ} ddVersion={ddVersion} className="pool-img" />
               <span className="pool-name">{champ.name}</span>
-              {isBanned && <span className="pool-banned-overlay">✕</span>}
+              <WinRateBadge winRate={champ.winRate} />
+              {bannedChampions.includes(champ.id) && <span className="pool-banned-overlay">✕</span>}
             </motion.button>
           );
         })}

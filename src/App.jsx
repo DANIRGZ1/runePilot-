@@ -6,13 +6,14 @@ import AnalysisPanel from "./components/AnalysisPanel";
 import BuildPanel from "./components/BuildPanel";
 import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import { lcuClient } from "./services/lcuClient";
-import { getLatestVersion, getChampionKeyMap } from "./services/datadragon";
-import { champions as allChampions } from "./data/champions";
+import { getLatestVersion } from "./services/datadragon";
+import { getAllChampions, getChampionByLcuKey } from "./services/championsService";
 import { Button } from "./components/ui/button";
 import "./App.css";
 
 const ROLES = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
 const MAX_BANS = 5;
+const POS_MAP = { top: 'TOP', jungle: 'JUNGLE', mid: 'MID', bottom: 'ADC', utility: 'SUPPORT' };
 
 const emptyTeam = () => ({ TOP: null, JUNGLE: null, MID: null, ADC: null, SUPPORT: null });
 const emptyBans = () => Array(MAX_BANS).fill(null);
@@ -23,15 +24,18 @@ export default function App() {
   const [blueBans, setBlueBans] = useState(emptyBans());
   const [redBans, setRedBans] = useState(emptyBans());
   const [activeSlot, setActiveSlot] = useState(null);
-  const [selectedChampion, setSelectedChampion] = useState(null); // for build panel
+  const [selectedChampion, setSelectedChampion] = useState(null);
   const [matchEvent, setMatchEvent] = useState(null);
-  const [lcuStatus, setLcuStatus] = useState('disconnected'); // 'connected' | 'disconnected' | 'unavailable'
+  const [lcuStatus, setLcuStatus] = useState('disconnected');
   const [ddVersion, setDdVersion] = useState(null);
+  const [championsList, setChampionsList] = useState([]);
+  const [assignedPosition, setAssignedPosition] = useState(null); // role assigned by LCU
   const matchDismissTimer = useRef(null);
 
-  // Load Data Dragon version on mount
+  // Load Data Dragon version + full champion roster on mount
   useEffect(() => {
     getLatestVersion().then(setDdVersion);
+    getAllChampions().then(setChampionsList);
   }, []);
 
   // Connect to LCU backend
@@ -61,42 +65,32 @@ export default function App() {
       matchDismissTimer.current = setTimeout(() => setMatchEvent(null), 3000);
     });
 
-    // LCU position → our role key
-    const POS_MAP = { top: 'TOP', jungle: 'JUNGLE', mid: 'MID', bottom: 'ADC', utility: 'SUPPORT' };
-
     const off9 = lcuClient.on('champ_select_update', async (msg) => {
       const session = msg.session;
       if (!session) return;
 
-      const keyMap = await getChampionKeyMap();
-
-      // Find champion from LCU numeric ID
-      const findChamp = (championId) => {
+      const findChamp = async (championId) => {
         if (!championId) return null;
-        const name = keyMap[championId];
-        if (!name) return null;
-        return allChampions.find((c) => c.name.toLowerCase() === name) || null;
+        return await getChampionByLcuKey(championId);
       };
 
-      // Parse a list of LCU players into team state {TOP, JUNGLE, ...}
-      const parseTeam = (players) => {
+      const parseTeam = async (players) => {
         const team = { TOP: null, JUNGLE: null, MID: null, ADC: null, SUPPORT: null };
         for (const p of players) {
           const role = POS_MAP[p.assignedPosition];
-          const champ = findChamp(p.championId || p.championPickIntent);
+          const champ = await findChamp(p.championId || p.championPickIntent);
           if (role && champ) team[role] = champ;
         }
         return team;
       };
 
-      // Parse completed bans from actions
-      const parseBans = (actions, teamIds) => {
+      const parseBans = async (actions, teamIds) => {
         const bans = Array(5).fill(null);
         let i = 0;
         for (const group of (actions || [])) {
           for (const action of group) {
             if (action.type === 'ban' && action.completed && teamIds.has(action.actorCellId)) {
-              const champ = findChamp(action.championId);
+              const champ = await findChamp(action.championId);
               if (champ && i < 5) bans[i++] = champ;
             }
           }
@@ -114,10 +108,23 @@ export default function App() {
       const blueIds = new Set(blueList.map((p) => p.cellId));
       const redIds = new Set(redList.map((p) => p.cellId));
 
-      setBlueTeam(parseTeam(blueList));
-      setRedTeam(parseTeam(redList));
-      setBlueBans(parseBans(session.actions, blueIds));
-      setRedBans(parseBans(session.actions, redIds));
+      // Detect our assigned position
+      const localCellId = session.localPlayerCellId;
+      const localPlayer = [...myTeam].find((p) => p.cellId === localCellId);
+      const myPos = localPlayer ? POS_MAP[localPlayer.assignedPosition] : null;
+      if (myPos) setAssignedPosition(myPos);
+
+      const [newBlue, newRed, newBlueBans, newRedBans] = await Promise.all([
+        parseTeam(blueList),
+        parseTeam(redList),
+        parseBans(session.actions, blueIds),
+        parseBans(session.actions, redIds),
+      ]);
+
+      setBlueTeam(newBlue);
+      setRedTeam(newRed);
+      setBlueBans(newBlueBans);
+      setRedBans(newRedBans);
       setActiveSlot(null);
     });
 
@@ -159,7 +166,6 @@ export default function App() {
   const handleChampionSelect = useCallback(
     (champion) => {
       if (!activeSlot) {
-        // No active slot — show builds for this champion
         setSelectedChampion((prev) => (prev?.id === champion.id ? null : champion));
         return;
       }
@@ -198,6 +204,7 @@ export default function App() {
     setRedBans(emptyBans());
     setActiveSlot(null);
     setSelectedChampion(null);
+    setAssignedPosition(null);
   };
 
   const lcuDot = {
@@ -222,6 +229,11 @@ export default function App() {
           <span className="logo-sub">Draft Analyzer</span>
         </div>
         <div className="header-right">
+          {assignedPosition && (
+            <span className="assigned-pos-badge" title="Your assigned position">
+              🎯 {assignedPosition}
+            </span>
+          )}
           <div className="lcu-status" title={lcuDot.label}>
             <span className="lcu-dot" style={{ background: lcuDot.color }} />
             <span className="lcu-label">{lcuDot.label}</span>
@@ -257,11 +269,13 @@ export default function App() {
 
         <section className="pool-section">
           <ChampionPool
+            champions={championsList}
             onSelect={handleChampionSelect}
             activeSlot={activeSlot}
             usedChampions={usedChampions}
             bannedChampions={bannedChampionIds}
             ddVersion={ddVersion}
+            assignedPosition={assignedPosition}
           />
         </section>
 
