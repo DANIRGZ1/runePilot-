@@ -45,6 +45,10 @@ export default function App() {
   });
   const [importToast, setImportToast] = useState(null); // null | 'importing' | 'ok' | 'err'
   const [playerData, setPlayerData] = useState(null); // { summoner, ranked, history }
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('rp_darkMode') ?? 'false'); }
+    catch { return false; }
+  });
   const lastAutoImportedRef = useRef(null);
   const matchDismissTimer = useRef(null);
   const importToastTimer = useRef(null);
@@ -68,6 +72,11 @@ export default function App() {
     getLatestVersion().then(setDdVersion);
     getAllChampions().then(setChampionsList);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('rp_darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
 
   useEffect(() => {
     lcuClient.connect();
@@ -382,6 +391,8 @@ export default function App() {
         onNavigate={setActiveView}
         lcuStatus={lcuStatus}
         version={ddVersion ? `v${ddVersion.split('.').slice(0,2).join('.')}` : 'v2.3.1'}
+        darkMode={darkMode}
+        onToggleDark={() => setDarkMode(d => !d)}
       />
 
       <div className="app-content">

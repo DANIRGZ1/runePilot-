@@ -8,44 +8,30 @@ import {
 } from '../services/datadragon';
 
 const QUEUE_NAMES = {
-  420: 'Ranked Solo/Duo',
-  440: 'Ranked Flex',
-  450: 'ARAM',
-  400: 'Normal Draft',
-  430: 'Normal',
-  700: 'Clash',
-  0:   'Custom',
+  420: 'Ranked Solo/Duo', 440: 'Ranked Flex', 450: 'ARAM',
+  400: 'Normal Draft',    430: 'Normal',       700: 'Clash', 0: 'Custom',
 };
 
 const TIER_COLORS = {
-  IRON:        '#8d7154',
-  BRONZE:      '#a0522d',
-  SILVER:      '#8fa8b0',
-  GOLD:        '#c89b3c',
-  PLATINUM:    '#3fa58a',
-  EMERALD:     '#3fa565',
-  DIAMOND:     '#4fa8e0',
-  MASTER:      '#9550c0',
-  GRANDMASTER: '#cf3f3f',
-  CHALLENGER:  '#f4c874',
+  IRON:'#8d7154', BRONZE:'#a0522d', SILVER:'#8fa8b0', GOLD:'#c89b3c',
+  PLATINUM:'#3fa58a', EMERALD:'#3fa565', DIAMOND:'#4fa8e0',
+  MASTER:'#9550c0', GRANDMASTER:'#cf3f3f', CHALLENGER:'#f4c874',
 };
 
-/* ─── Role icon ─── */
-function RoleIcon({ role, size = 20 }) {
+/* ─── Primitives ─── */
+
+function RoleIcon({ role, size = 16 }) {
   const [failed, setFailed] = useState(false);
   const url = role ? ROLE_ICON_URLS[role.toUpperCase()] : null;
-  if (!url || failed) return <span style={{ width: size, height: size, display: 'inline-block', opacity: 0.3 }}>—</span>;
+  if (!url || failed) return <span style={{ width: size, display: 'inline-block' }} />;
   return (
-    <img
-      src={url} alt={role} width={size} height={size}
+    <img src={url} alt={role} width={size} height={size}
       className="role-icon-img"
       onError={() => setFailed(true)}
-      style={{ filter: 'brightness(0) invert(0.4)', opacity: 0.85 }}
-    />
+      style={{ filter: 'brightness(0) invert(0.45)', opacity: 0.9 }} />
   );
 }
 
-/* ─── Ranked emblem ─── */
 function RankedEmblem({ tier, size = 80 }) {
   const [failed, setFailed] = useState(false);
   const src = tier ? getRankedEmblemUrl(tier) : null;
@@ -53,7 +39,6 @@ function RankedEmblem({ tier, size = 80 }) {
   return <img src={src} alt={tier} width={size} height={size} className="rank-emblem-img" onError={() => setFailed(true)} />;
 }
 
-/* ─── Champion icon ─── */
 function ChampIcon({ champId, ddVersion, size = 36 }) {
   const [src, setSrc] = useState(null);
   const [failed, setFailed] = useState(false);
@@ -69,21 +54,20 @@ function ChampIcon({ champId, ddVersion, size = 36 }) {
 function MatchRow({ game, ddVersion }) {
   const me = game.participants?.[0];
   if (!me) return null;
-
   const stats = me.stats || {};
-  const win   = stats.win;
+  const win = stats.win;
   const k = stats.kills ?? 0, d = stats.deaths ?? 0, a = stats.assists ?? 0;
   const kda = d === 0 ? '∞' : ((k + a) / d).toFixed(1);
   const mins = game.gameDuration ? Math.floor(game.gameDuration / 60) : 0;
   const secs = game.gameDuration ? game.gameDuration % 60 : 0;
-  const duration  = game.gameDuration ? `${mins}:${String(secs).padStart(2,'0')}` : '--:--';
+  const duration = game.gameDuration ? `${mins}:${String(secs).padStart(2,'0')}` : '--:--';
   const queueName = QUEUE_NAMES[game.queueId] ?? `Cola ${game.queueId}`;
 
   const teamPos = me.teamPosition || '';
   let role = teamPos;
   if (!role) {
     const lane = (me.timeline?.lane || '').toUpperCase();
-    const r    = (me.timeline?.role || '').toUpperCase();
+    const r = (me.timeline?.role || '').toUpperCase();
     if (lane === 'JUNGLE') role = 'JUNGLE';
     else if (lane === 'TOP') role = 'TOP';
     else if (lane === 'MIDDLE') role = 'MIDDLE';
@@ -96,9 +80,7 @@ function MatchRow({ game, ddVersion }) {
       <div className={`match-result-bar ${win ? 'win' : 'loss'}`} />
       <span className={`match-wl ${win ? 'win' : 'loss'}`}>{win ? 'V' : 'D'}</span>
       <ChampIcon champId={me.championId} ddVersion={ddVersion} size={36} />
-      <div className="match-role">
-        <RoleIcon role={role || 'FILL'} size={16} />
-      </div>
+      <div className="match-role"><RoleIcon role={role || 'FILL'} size={16} /></div>
       <div className="match-kda">
         <span className="match-kda-nums">
           <span className="match-k">{k}</span>
@@ -118,23 +100,26 @@ function MatchRow({ game, ddVersion }) {
 }
 
 /* ─── Player card ─── */
-function PlayerCard({ summoner, ranked, ddVersion }) {
+function PlayerCard({ data, ddVersion, isSelf, savedProfiles, onSave, onUnsave }) {
+  const { summoner, ranked } = data;
   const soloQ = ranked?.queues?.find(q => q.queueType === 'RANKED_SOLO_5x5');
-  const queue  = soloQ || ranked?.queues?.find(q => q.queueType === 'RANKED_FLEX_SR');
-
-  const tier     = queue?.tier     || 'UNRANKED';
+  const queue = soloQ || ranked?.queues?.find(q => q.queueType === 'RANKED_FLEX_SR');
+  const tier = queue?.tier || 'UNRANKED';
   const division = queue?.division || '';
-  const lp       = queue?.leaguePoints ?? 0;
-  const wins     = queue?.wins    ?? 0;
-  const losses   = queue?.losses  ?? 0;
-  const total    = wins + losses;
-  const wr       = total > 0 ? ((wins / total) * 100).toFixed(0) : null;
-  const color    = TIER_COLORS[tier] || '#8fa8b0';
+  const lp = queue?.leaguePoints ?? 0;
+  const wins = queue?.wins ?? 0;
+  const losses = queue?.losses ?? 0;
+  const total = wins + losses;
+  const wr = total > 0 ? ((wins / total) * 100).toFixed(0) : null;
+  const color = TIER_COLORS[tier] || '#8fa8b0';
   const profileIconUrl = summoner?.profileIconId && ddVersion
     ? getProfileIconUrl(summoner.profileIconId, ddVersion) : null;
+  const isSaved = savedProfiles?.some(p => p.puuid === summoner?.puuid);
 
   return (
-    <motion.div className="player-card" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 320, damping: 28 }}>
+    <motion.div className="player-card"
+      initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 28 }}>
       <div className="player-card-left">
         <div className="player-profile-icon-wrap">
           {profileIconUrl
@@ -143,7 +128,14 @@ function PlayerCard({ summoner, ranked, ddVersion }) {
           <span className="player-level">{summoner?.summonerLevel ?? '--'}</span>
         </div>
         <div className="player-info">
-          <span className="player-name">{summoner?.displayName ?? '---'}</span>
+          <div className="player-name-row">
+            <span className="player-name">{summoner?.displayName ?? '---'}</span>
+            {!isSelf && (
+              isSaved
+                ? <button className="save-profile-btn saved" onClick={() => onUnsave(summoner.puuid)} title="Quitar de guardados">★ Guardado</button>
+                : <button className="save-profile-btn" onClick={() => onSave(summoner)} title="Guardar perfil">☆ Guardar</button>
+            )}
+          </div>
           <span className="player-rank" style={{ color }}>
             {tier !== 'UNRANKED' ? `${tier} ${division} · ${lp} LP` : 'Sin clasificar'}
           </span>
@@ -161,33 +153,21 @@ function PlayerCard({ summoner, ranked, ddVersion }) {
   );
 }
 
-/* ─── Connecting animation ─── */
+/* ─── Connecting screens ─── */
 function ConnectingScreen() {
   return (
     <div className="home-connecting">
       <div className="connecting-animation">
-        <motion.div
-          className="connecting-ring connecting-ring-1"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div
-          className="connecting-ring connecting-ring-2"
-          animate={{ rotate: -360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div
-          className="connecting-ring connecting-ring-3"
-          animate={{ scale: [1, 1.08, 1] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        <motion.div className="connecting-ring connecting-ring-1"
+          animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }} />
+        <motion.div className="connecting-ring connecting-ring-2"
+          animate={{ rotate: -360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} />
+        <motion.div className="connecting-ring connecting-ring-3"
+          animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }} />
         <div className="connecting-logo">RP</div>
       </div>
-      <motion.p
-        className="connecting-title"
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-      >
+      <motion.p className="connecting-title"
+        animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
         Esperando a League of Legends…
       </motion.p>
       <p className="connecting-sub">Abre el cliente de LoL para continuar</p>
@@ -195,16 +175,12 @@ function ConnectingScreen() {
   );
 }
 
-/* ─── Loading spinner (connected but fetching data) ─── */
 function LoadingData() {
   return (
     <div className="home-connecting">
       <div className="connecting-animation">
-        <motion.div
-          className="connecting-ring connecting-ring-1"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-        />
+        <motion.div className="connecting-ring connecting-ring-1"
+          animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }} />
         <div className="connecting-logo" style={{ fontSize: 11, color: '#c89b3c' }}>RP</div>
       </div>
       <p className="connecting-title">Cargando perfil…</p>
@@ -212,48 +188,180 @@ function LoadingData() {
   );
 }
 
-/* ─── Main ─── */
+/* ─── Main HomeView ─── */
 export default function HomeView({ ddVersion, playerData, lcuStatus }) {
-  const connected   = lcuStatus === 'connected';
+  const connected = lcuStatus === 'connected';
   const hasSummoner = !!playerData?.summoner?.displayName;
-  const games       = playerData?.history?.games?.games ?? [];
 
-  // Not connected to LCU → show connecting animation
+  // Search state
+  const [searchInput, setSearchInput] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [searchedData, setSearchedData] = useState(null);
+  const [viewMode, setViewMode] = useState('own'); // 'own' | 'searched'
+
+  // Saved profiles
+  const [savedProfiles, setSavedProfiles] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('rp_saved_profiles') || '[]'); }
+    catch { return []; }
+  });
+
+  const displayData = viewMode === 'searched' ? searchedData : playerData;
+  const games = displayData?.history?.games?.games ?? [];
+
+  async function handleSearch(e) {
+    e?.preventDefault();
+    const name = searchInput.trim();
+    if (!name) return;
+    setSearching(true);
+    setSearchError(null);
+    try {
+      const sumRes = await fetch(`http://localhost:3001/lcu/summoner/search?name=${encodeURIComponent(name)}`);
+      if (!sumRes.ok) { setSearchError('Invocador no encontrado'); setSearching(false); return; }
+      const summoner = await sumRes.json();
+      const [rankRes, histRes] = await Promise.allSettled([
+        fetch(`http://localhost:3001/lcu/ranked/by-id?summonerId=${summoner.summonerId}`).then(r => r.json()),
+        fetch(`http://localhost:3001/lcu/history/by-puuid?puuid=${summoner.puuid}`).then(r => r.json()),
+      ]);
+      setSearchedData({
+        summoner,
+        ranked:  rankRes.status === 'fulfilled' ? rankRes.value : null,
+        history: histRes.status === 'fulfilled' ? histRes.value : null,
+      });
+      setViewMode('searched');
+    } catch {
+      setSearchError('Error al conectar con el LCU');
+    }
+    setSearching(false);
+  }
+
+  async function loadSavedProfile(profile) {
+    setSearchInput(profile.displayName);
+    setSearching(true);
+    setSearchError(null);
+    try {
+      const [rankRes, histRes] = await Promise.allSettled([
+        fetch(`http://localhost:3001/lcu/ranked/by-id?summonerId=${profile.summonerId}`).then(r => r.json()),
+        fetch(`http://localhost:3001/lcu/history/by-puuid?puuid=${profile.puuid}`).then(r => r.json()),
+      ]);
+      setSearchedData({
+        summoner: profile,
+        ranked:  rankRes.status === 'fulfilled' ? rankRes.value : null,
+        history: histRes.status === 'fulfilled' ? histRes.value : null,
+      });
+      setViewMode('searched');
+    } catch {
+      setSearchError('Error al cargar perfil');
+    }
+    setSearching(false);
+  }
+
+  function saveProfile(summoner) {
+    if (savedProfiles.some(p => p.puuid === summoner.puuid)) return;
+    const profile = {
+      displayName: summoner.displayName,
+      puuid: summoner.puuid,
+      summonerId: summoner.summonerId,
+      profileIconId: summoner.profileIconId,
+      summonerLevel: summoner.summonerLevel,
+    };
+    const updated = [profile, ...savedProfiles].slice(0, 10);
+    setSavedProfiles(updated);
+    localStorage.setItem('rp_saved_profiles', JSON.stringify(updated));
+  }
+
+  function unsaveProfile(puuid) {
+    const updated = savedProfiles.filter(p => p.puuid !== puuid);
+    setSavedProfiles(updated);
+    localStorage.setItem('rp_saved_profiles', JSON.stringify(updated));
+  }
+
+  // Not connected
   if (!connected && !hasSummoner) return <ConnectingScreen />;
-
-  // Connected but data not yet loaded
+  // Connected but own data loading
   if (connected && playerData === null) return <LoadingData />;
 
   return (
     <div className="home-view">
-      {hasSummoner
-        ? <PlayerCard summoner={playerData.summoner} ranked={playerData.ranked} ddVersion={ddVersion} />
-        : (
-          <div className="home-no-lcu">
-            <div className="home-no-lcu-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="40" height="40">
-                <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" />
-              </svg>
-            </div>
-            <h3>No se encontraron datos de perfil</h3>
-            <p>Comprueba que el cliente de LoL ha terminado de cargar.</p>
-          </div>
-        )}
 
-      {hasSummoner && (
-        <div className="match-history-section">
-          <div className="match-history-title">Historial reciente</div>
-          {games.length === 0
-            ? <p className="match-history-empty">Sin partidas recientes.</p>
-            : (
-              <div className="match-history-list">
-                {games.slice(0, 15).map(g => (
-                  <MatchRow key={g.gameId} game={g} ddVersion={ddVersion} />
-                ))}
-              </div>
-            )}
+      {/* Search bar */}
+      {connected && (
+        <div className="home-search-section">
+          <form className="home-search-form" onSubmit={handleSearch}>
+            <input
+              className="home-search-input"
+              type="text"
+              placeholder="Buscar invocador…"
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+            />
+            <button className="home-search-btn" type="submit" disabled={searching}>
+              {searching
+                ? <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}>⟳</motion.span>
+                : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>}
+            </button>
+          </form>
+          {searchError && <span className="search-error">{searchError}</span>}
+          {viewMode === 'searched' && (
+            <button className="home-back-btn" onClick={() => { setViewMode('own'); setSearchInput(''); setSearchedData(null); setSearchError(null); }}>
+              ← Ver mi perfil
+            </button>
+          )}
         </div>
       )}
+
+      {/* Saved profiles */}
+      {connected && savedProfiles.length > 0 && (
+        <div className="saved-profiles-section">
+          <span className="saved-profiles-label">Guardados</span>
+          <div className="saved-profiles-list">
+            {savedProfiles.map(p => (
+              <div key={p.puuid} className="saved-chip">
+                {p.profileIconId && ddVersion && (
+                  <img src={getProfileIconUrl(p.profileIconId, ddVersion)} alt="" className="saved-chip-icon" onError={() => {}} />
+                )}
+                <button className="saved-chip-name" onClick={() => loadSavedProfile(p)}>{p.displayName}</button>
+                <button className="saved-chip-remove" onClick={() => unsaveProfile(p.puuid)} title="Eliminar">×</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Player card + history */}
+      {displayData?.summoner
+        ? <>
+            <PlayerCard
+              data={displayData}
+              ddVersion={ddVersion}
+              isSelf={viewMode === 'own'}
+              savedProfiles={savedProfiles}
+              onSave={saveProfile}
+              onUnsave={unsaveProfile}
+            />
+            <div className="match-history-section">
+              <div className="match-history-title">
+                {viewMode === 'searched'
+                  ? `Historial de ${displayData.summoner.displayName}`
+                  : 'Historial reciente'}
+              </div>
+              {games.length === 0
+                ? <p className="match-history-empty">Sin partidas recientes.</p>
+                : <div className="match-history-list">
+                    {games.slice(0, 15).map(g => (
+                      <MatchRow key={g.gameId} game={g} ddVersion={ddVersion} />
+                    ))}
+                  </div>}
+            </div>
+          </>
+        : hasSummoner
+          ? <PlayerCard data={playerData} ddVersion={ddVersion} isSelf savedProfiles={[]} />
+          : <div className="home-no-lcu">
+              <h3>No se encontraron datos</h3>
+              <p>Comprueba que el cliente de LoL ha terminado de cargar.</p>
+            </div>}
     </div>
   );
 }

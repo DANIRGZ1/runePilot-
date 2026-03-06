@@ -77,6 +77,40 @@ app.get('/lcu/ranked', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Search summoner by name
+app.get('/lcu/summoner/search', async (req, res) => {
+  if (!lcuConnected || !lcu.credentials) return res.status(503).json({ error: 'LCU not connected' });
+  const { name } = req.query;
+  if (!name) return res.status(400).json({ error: 'Missing name' });
+  try {
+    const data = await lcu.lcuGet(`/lol-summoner/v1/summoners?name=${encodeURIComponent(name)}`);
+    if (!data || data.errorCode) return res.status(404).json({ error: 'Summoner not found' });
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Ranked stats by summonerId
+app.get('/lcu/ranked/by-id', async (req, res) => {
+  if (!lcuConnected || !lcu.credentials) return res.status(503).json({ error: 'LCU not connected' });
+  const { summonerId } = req.query;
+  if (!summonerId) return res.status(400).json({ error: 'Missing summonerId' });
+  try {
+    const data = await lcu.lcuGet(`/lol-ranked/v1/ranked-stats/${summonerId}`);
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Match history by puuid
+app.get('/lcu/history/by-puuid', async (req, res) => {
+  if (!lcuConnected || !lcu.credentials) return res.status(503).json({ error: 'LCU not connected' });
+  const { puuid } = req.query;
+  if (!puuid) return res.status(400).json({ error: 'Missing puuid' });
+  try {
+    const data = await lcu.lcuGet(`/lol-match-history/v1/products/lol/${puuid}/matches?begIndex=0&endIndex=20`);
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Match history (last 20 games)
 app.get('/lcu/history', async (req, res) => {
   if (!lcuConnected || !lcu.credentials) return res.status(503).json({ error: 'LCU not connected' });

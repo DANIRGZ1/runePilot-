@@ -86,6 +86,41 @@
   --ease:       cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ===========================
+   Dark Theme overrides
+   =========================== */
+[data-theme="dark"] {
+  --background:       220 20% 8%;
+  --foreground:       220 15% 88%;
+  --card:             220 20% 12%;
+  --card-foreground:  220 15% 88%;
+  --muted:            220 20% 18%;
+  --muted-foreground: 220 10% 52%;
+  --border:           220 20% 22%;
+  --input:            220 20% 16%;
+  --ring:             215 60% 50%;
+
+  --rp-bg:         #0d1117;
+  --rp-sidebar:    #111827;
+  --rp-card:       #161c2a;
+  --rp-border:     #263048;
+  --rp-hover:      #1e2d45;
+  --rp-surface:    #1a2235;
+
+  --rp-text:       #dde4f0;
+  --rp-text-muted: #8fa3c8;
+  --rp-text-sub:   #536070;
+
+  --bg:         #0d1117;
+  --surface:    #161c2a;
+  --hover:      #1e2d45;
+  --rp-card-dark: #161c2a;
+  --text:       #dde4f0;
+  --subtle:     #8fa3c8;
+}
+
+[data-theme="dark"] body { color-scheme: dark; }
+
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--rp-bg);
@@ -270,6 +305,27 @@ body {
   transition: background 0.2s;
 }
 
+.dark-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 8px;
+  margin: 4px 0 6px;
+  background: transparent;
+  border: 1px solid var(--rp-border);
+  border-radius: 7px;
+  color: var(--rp-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.dark-mode-toggle:hover {
+  color: var(--rp-gold);
+  border-color: var(--rp-gold);
+  background: var(--rp-gold-dim);
+}
+
 .sidebar-version {
   font-size: 11px;
   color: var(--rp-text-sub);
@@ -443,6 +499,79 @@ body {
   gap: 16px;
   animation: fadeIn 0.3s var(--rp-ease);
 }
+
+/* ── Search bar ── */
+.home-search-section {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.home-search-form { display: flex; flex: 1; gap: 0; max-width: 420px; }
+.home-search-input {
+  flex: 1; height: 36px; padding: 0 12px;
+  border: 1px solid var(--rp-border); border-right: none;
+  border-radius: 8px 0 0 8px;
+  background: var(--rp-card); color: var(--rp-text);
+  font-size: 13px; outline: none;
+  transition: border-color 0.2s;
+}
+.home-search-input:focus { border-color: var(--rp-gold); }
+.home-search-btn {
+  height: 36px; width: 40px;
+  background: var(--rp-gold); color: #1a1200;
+  border: none; border-radius: 0 8px 8px 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: opacity 0.15s;
+}
+.home-search-btn:hover { opacity: 0.85; }
+.home-search-btn:disabled { opacity: 0.5; cursor: default; }
+.search-error {
+  font-size: 12px; color: var(--rp-red);
+  background: var(--rp-red-dim); padding: 4px 10px; border-radius: 6px;
+}
+.home-back-btn {
+  font-size: 12px; color: var(--rp-text-muted); background: none; border: none;
+  cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.home-back-btn:hover { color: var(--rp-gold); background: var(--rp-gold-dim); }
+
+/* ── Saved profiles ── */
+.saved-profiles-section { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.saved-profiles-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--rp-text-muted); white-space: nowrap;
+}
+.saved-profiles-list { display: flex; gap: 6px; flex-wrap: wrap; }
+.saved-chip {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--rp-surface); border: 1px solid var(--rp-border);
+  border-radius: 20px; padding: 3px 8px 3px 4px;
+  transition: border-color 0.15s;
+}
+.saved-chip:hover { border-color: var(--rp-gold); }
+.saved-chip-icon { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+.saved-chip-name {
+  font-size: 12px; font-weight: 600; color: var(--rp-text);
+  background: none; border: none; cursor: pointer; padding: 0;
+}
+.saved-chip-name:hover { color: var(--rp-gold); }
+.saved-chip-remove {
+  font-size: 14px; color: var(--rp-text-sub); background: none; border: none;
+  cursor: pointer; line-height: 1; padding: 0 2px;
+  transition: color 0.15s;
+}
+.saved-chip-remove:hover { color: var(--rp-red); }
+
+/* ── Save profile button ── */
+.player-name-row { display: flex; align-items: center; gap: 10px; }
+.save-profile-btn {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px;
+  border: 1px solid var(--rp-border); background: transparent;
+  color: var(--rp-text-muted); cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.save-profile-btn:hover { color: var(--rp-gold); border-color: var(--rp-gold); background: var(--rp-gold-dim); }
+.save-profile-btn.saved { color: var(--rp-gold); border-color: var(--rp-gold); background: var(--rp-gold-dim); }
 
 /* ── Player card ── */
 .player-card {
