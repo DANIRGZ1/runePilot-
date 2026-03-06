@@ -508,6 +508,68 @@ body {
 .home-no-lcu h3 { font-size: 16px; font-weight: 600; color: var(--rp-text); margin: 0; }
 .home-no-lcu p  { font-size: 13px; margin: 0; }
 
+/* ── Connecting / loading animation ── */
+.home-connecting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 80px 24px;
+  min-height: 340px;
+}
+
+.connecting-animation {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.connecting-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+.connecting-ring-1 {
+  width: 96px; height: 96px;
+  border-top-color: var(--rp-gold);
+  border-right-color: rgba(200,155,60,0.3);
+}
+.connecting-ring-2 {
+  width: 74px; height: 74px;
+  border-right-color: var(--rp-gold);
+  border-bottom-color: rgba(200,155,60,0.4);
+  opacity: 0.7;
+}
+.connecting-ring-3 {
+  width: 54px; height: 54px;
+  background: rgba(200,155,60,0.07);
+  border: 1px solid rgba(200,155,60,0.2);
+}
+
+.connecting-logo {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--rp-gold);
+  letter-spacing: 1px;
+  z-index: 1;
+}
+
+.connecting-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rp-text);
+  margin: 0;
+}
+.connecting-sub {
+  font-size: 12px;
+  color: var(--rp-text-muted);
+  margin: 0;
+}
+
 /* ── Match history ── */
 .match-history-section {
   background: var(--rp-card);

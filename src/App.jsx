@@ -353,7 +353,7 @@ export default function App() {
   const renderContent = () => {
     switch (activeView) {
       case 'inicio':
-        return <HomeView ddVersion={ddVersion} playerData={playerData} />;
+        return <HomeView ddVersion={ddVersion} playerData={playerData} lcuStatus={lcuStatus} />;
       case 'draft':
       case 'importar':
         return renderDraftView();
