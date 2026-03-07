@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ===========================
-   RunasPro — Light Theme
+   RunePilot — Black / Burgundy / White
    =========================== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -12,114 +12,90 @@
 }
 
 :root {
-  /* shadcn/ui CSS variables — light theme */
-  --background:        0 0% 97%;
-  --foreground:        220 20% 10%;
-  --card:              0 0% 100%;
-  --card-foreground:   220 20% 10%;
-  --primary:           215 60% 50%;
+  /* shadcn/ui CSS variables */
+  --background:        0 0% 4%;
+  --foreground:        0 0% 100%;
+  --card:              0 0% 7%;
+  --card-foreground:   0 0% 100%;
+  --primary:           349 100% 21%;
   --primary-foreground: 0 0% 100%;
-  --secondary:         215 20% 95%;
-  --secondary-foreground: 215 20% 35%;
-  --muted:             215 20% 95%;
-  --muted-foreground:  215 15% 55%;
-  --accent:            215 20% 93%;
-  --accent-foreground: 215 20% 25%;
+  --secondary:         0 0% 10%;
+  --secondary-foreground: 0 0% 70%;
+  --muted:             0 0% 12%;
+  --muted-foreground:  0 0% 52%;
+  --accent:            349 100% 21%;
+  --accent-foreground: 0 0% 100%;
   --destructive:       0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border:            215 20% 88%;
-  --input:             215 20% 94%;
-  --ring:              215 60% 50%;
-  --radius:            0.625rem;
+  --border:            0 0% 14%;
+  --input:             0 0% 10%;
+  --ring:              349 100% 21%;
+  --radius:            0.375rem;
 
-  /* RunasPro custom tokens */
-  --rp-bg:         #eef0f5;
-  --rp-sidebar:    #ffffff;
-  --rp-card:       #ffffff;
-  --rp-border:     #e2e6ed;
-  --rp-hover:      #f1f4f9;
-  --rp-surface:    #f7f9fc;
+  /* RunePilot core palette */
+  --rp-bg:         #000000;
+  --rp-sidebar:    #0a0a0a;
+  --rp-card:       #111111;
+  --rp-border:     #222222;
+  --rp-hover:      #1a1a1a;
+  --rp-surface:    #0d0d0d;
 
-  --rp-text:       #1a1d23;
-  --rp-text-muted: #6b7280;
-  --rp-text-sub:   #9ca3af;
+  --rp-text:       #ffffff;
+  --rp-text-muted: #888888;
+  --rp-text-sub:   #555555;
 
-  --rp-blue:       #3b82f6;
-  --rp-blue-dim:   rgba(59,130,246,0.10);
+  /* Burgundy accent — primary brand color */
+  --rp-burgundy:       #6D001A;
+  --rp-burgundy-light: #8B0020;
+  --rp-burgundy-dim:   rgba(109,0,26,0.15);
+  --rp-burgundy-glow:  rgba(109,0,26,0.30);
+
+  /* Aliases: blue → burgundy for legacy refs */
+  --rp-blue:       #6D001A;
+  --rp-blue-dim:   rgba(109,0,26,0.15);
+
+  /* Gold — kept for rank/tier indicators */
   --rp-gold:       #c89b3c;
   --rp-gold-dim:   rgba(200,155,60,0.12);
   --rp-red:        #e84057;
   --rp-red-dim:    rgba(232,64,87,0.10);
   --rp-green:      #10b981;
 
-  --rp-import:     #f59e0b;
-  --rp-import-dim: rgba(245,158,11,0.15);
+  --rp-import:     #c89b3c;
+  --rp-import-dim: rgba(200,155,60,0.15);
 
   --rp-ad:         #f97316;
   --rp-ap:         #8b5cf6;
   --rp-mixed:      #10b981;
 
-  --rp-radius:     10px;
+  --rp-radius:     6px;
   --rp-ease:       cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Keep legacy dark vars for draft components */
-  --bg:         #f7f9fc;
-  --surface:    #ffffff;
-  --hover:      #f1f4f9;
-  --rp-card-dark: #ffffff;
-  --blue:       #3b82f6;
-  --blue-dim:   rgba(59,130,246,0.10);
-  --blue-glow:  rgba(59,130,246,0.20);
+  /* Legacy aliases */
+  --bg:         #000000;
+  --surface:    #111111;
+  --hover:      #1a1a1a;
+  --rp-card-dark: #111111;
+  --blue:       #6D001A;
+  --blue-dim:   rgba(109,0,26,0.15);
+  --blue-glow:  rgba(109,0,26,0.30);
   --red:        #e84057;
   --red-dim:    rgba(232,64,87,0.10);
   --red-glow:   rgba(232,64,87,0.20);
   --gold:       #c89b3c;
   --gold-dim:   rgba(200,155,60,0.12);
   --gold-glow:  rgba(200,155,60,0.25);
-  --text:       #1a1d23;
-  --rp-muted:   #6b7280;
-  --subtle:     #4b5563;
+  --text:       #ffffff;
+  --rp-muted:   #888888;
+  --subtle:     #666666;
   --ad:         #f97316;
   --ap:         #8b5cf6;
   --mixed:      #10b981;
-  --radius:     10px;
+  --radius:     6px;
   --ease:       cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ===========================
-   Dark Theme overrides
-   =========================== */
-[data-theme="dark"] {
-  --background:       220 20% 8%;
-  --foreground:       220 15% 88%;
-  --card:             220 20% 12%;
-  --card-foreground:  220 15% 88%;
-  --muted:            220 20% 18%;
-  --muted-foreground: 220 10% 52%;
-  --border:           220 20% 22%;
-  --input:            220 20% 16%;
-  --ring:             215 60% 50%;
-
-  --rp-bg:         #0d1117;
-  --rp-sidebar:    #111827;
-  --rp-card:       #161c2a;
-  --rp-border:     #263048;
-  --rp-hover:      #1e2d45;
-  --rp-surface:    #1a2235;
-
-  --rp-text:       #dde4f0;
-  --rp-text-muted: #8fa3c8;
-  --rp-text-sub:   #536070;
-
-  --bg:         #0d1117;
-  --surface:    #161c2a;
-  --hover:      #1e2d45;
-  --rp-card-dark: #161c2a;
-  --text:       #dde4f0;
-  --subtle:     #8fa3c8;
-}
-
-[data-theme="dark"] body { color-scheme: dark; }
+body { color-scheme: dark; }
 
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -146,7 +122,7 @@ body {
   from { width: 0; }
 }
 @keyframes pulseBlue {
-  0%, 100% { box-shadow: 0 0 0 0 var(--blue-glow); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--rp-burgundy-glow); }
   50%       { box-shadow: 0 0 0 5px transparent; }
 }
 @keyframes bannerSlideDown {
@@ -257,8 +233,8 @@ body {
 }
 
 .nav-item.active {
-  background: var(--rp-blue-dim);
-  color: var(--rp-blue);
+  background: var(--rp-burgundy-dim);
+  color: var(--rp-burgundy-light);
   font-weight: 600;
 }
 
@@ -375,8 +351,8 @@ body {
 }
 
 .topbar-input:focus {
-  border-color: var(--rp-blue);
-  box-shadow: 0 0 0 3px var(--rp-blue-dim);
+  border-color: var(--rp-burgundy-light);
+  box-shadow: 0 0 0 3px var(--rp-burgundy-dim);
 }
 .topbar-input::placeholder { color: var(--rp-text-sub); }
 
@@ -414,7 +390,7 @@ body {
 }
 
 .region-btn.active {
-  color: var(--rp-blue);
+  color: var(--rp-burgundy-light);
   font-weight: 700;
 }
 
@@ -475,7 +451,7 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #6D001A, #3a000d);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1029,7 +1005,7 @@ body {
   background-position: right 10px center;
   transition: border-color 0.2s;
 }
-.rune-select:focus { border-color: var(--rp-blue); }
+.rune-select:focus { border-color: var(--rp-burgundy-light); }
 
 .rune-import-btn {
   display: flex;
@@ -1047,9 +1023,9 @@ body {
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .rune-import-btn:hover {
-  background: var(--rp-blue-dim);
-  border-color: var(--rp-blue);
-  color: var(--rp-blue);
+  background: var(--rp-burgundy-dim);
+  border-color: var(--rp-burgundy-light);
+  color: var(--rp-burgundy-light);
 }
 
 .runes-grid {
@@ -1251,7 +1227,7 @@ body {
 
 .region-stat-flag { font-size: 14px; }
 .region-stat-code { font-weight: 600; color: var(--rp-text); }
-.region-stat-wr   { font-weight: 700; color: var(--rp-blue); }
+.region-stat-wr   { font-weight: 700; color: var(--rp-burgundy-light); }
 
 /* Top global champions */
 .top-global-section {
@@ -1316,7 +1292,7 @@ body {
 .global-champ-fallback {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #6D001A, #3a000d);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1519,9 +1495,9 @@ body {
   white-space: nowrap;
 }
 .import-toast-importing {
-  background: rgba(59,130,246,0.10);
-  border-color: rgba(59,130,246,0.35);
-  color: var(--rp-blue);
+  background: var(--rp-burgundy-dim);
+  border-color: rgba(109,0,26,0.45);
+  color: var(--rp-burgundy-light);
 }
 .import-toast-ok {
   background: rgba(16,185,129,0.10);
@@ -1557,7 +1533,7 @@ body {
   letter-spacing: 1.5px;
   text-align: center;
 }
-.team-title.blue { color: var(--rp-blue); }
+.team-title.blue { color: #5b8dee; }
 .team-title.red  { color: var(--rp-red); }
 
 .bans-row {
@@ -1769,7 +1745,7 @@ body {
   outline: none;
   transition: border-color 0.2s;
 }
-.search-input:focus { border-color: var(--rp-blue); }
+.search-input:focus { border-color: var(--rp-burgundy-light); }
 .search-input::placeholder { color: var(--rp-text-sub); }
 
 .role-filters { display: flex; gap: 3px; flex-wrap: wrap; }
@@ -1898,7 +1874,7 @@ body {
   border: 1px solid var(--rp-border);
   border-left-width: 3px;
 }
-.analysis-section.blue-analysis { border-left-color: var(--rp-blue); }
+.analysis-section.blue-analysis { border-left-color: #5b8dee; }
 .analysis-section.red-analysis  { border-left-color: var(--rp-red); }
 
 .analysis-title { font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--rp-text); }
@@ -1983,7 +1959,7 @@ body {
 }
 
 .wr-label { font-size: 11px; font-weight: 700; white-space: nowrap; min-width: 56px; }
-.wr-label.blue-label { color: var(--rp-blue); }
+.wr-label.blue-label { color: #5b8dee; }
 .wr-label.red-label  { color: var(--rp-red); text-align: right; }
 
 .wr-track {
@@ -1997,7 +1973,7 @@ body {
 .wr-fill {
   height: 100%;
   border-radius: 20px;
-  background: linear-gradient(90deg, #1e40af, var(--rp-blue));
+  background: linear-gradient(90deg, #1e40af, #5b8dee);
   transition: width 0.6s var(--rp-ease);
 }
 
@@ -2182,7 +2158,7 @@ body {
   font-weight: 600;
 }
 .skill-1 { background: rgba(16,185,129,0.12); color: var(--rp-mixed); border: 1px solid rgba(16,185,129,0.3); }
-.skill-2 { background: rgba(59,130,246,0.10); color: var(--rp-blue);  border: 1px solid rgba(59,130,246,0.25); }
+.skill-2 { background: rgba(91,141,238,0.10); color: #5b8dee;  border: 1px solid rgba(91,141,238,0.25); }
 
 /* ===========================
    Rune Page — visual icons
