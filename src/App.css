@@ -512,6 +512,164 @@ body {
   background: var(--rp-hover);
   color: var(--rp-text);
 }
+.topbar-icon-btn.active {
+  background: var(--rp-gold-dim);
+  color: var(--rp-gold);
+}
+
+/* ── Settings Panel ── */
+.settings-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 300px;
+  background: var(--rp-card);
+  border: 1px solid var(--rp-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  z-index: 500;
+  overflow: hidden;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--rp-text);
+  border-bottom: 1px solid var(--rp-border);
+  letter-spacing: 0.3px;
+}
+
+.settings-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rp-border);
+}
+.settings-section:last-child { border-bottom: none; }
+
+.settings-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--rp-text-muted);
+  margin-bottom: 10px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-row-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rp-text);
+}
+
+.settings-row-desc {
+  font-size: 11px;
+  color: var(--rp-text-muted);
+}
+
+.settings-switch {
+  flex-shrink: 0;
+  font-size: 14px;
+  width: 2.9em;
+  height: 1.65em;
+}
+
+.settings-regions-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.settings-region-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--rp-border);
+  background: transparent;
+  color: var(--rp-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.settings-region-chip:hover {
+  background: var(--rp-hover);
+  color: var(--rp-text);
+}
+.settings-region-chip.active {
+  background: var(--rp-gold-dim);
+  border-color: var(--rp-gold);
+  color: var(--rp-gold);
+}
+
+.settings-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-shortcut-label {
+  font-size: 12px;
+  color: var(--rp-text-muted);
+}
+
+.settings-shortcut-row kbd {
+  font-size: 10px;
+  font-family: inherit;
+  font-weight: 700;
+  padding: 2px 7px;
+  background: var(--rp-surface);
+  border: 1px solid var(--rp-border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  color: var(--rp-text);
+  letter-spacing: 0.3px;
+}
+
+.settings-footer {
+  padding: 10px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--rp-surface);
+}
+
+.settings-footer-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--rp-text-muted);
+}
+
+.settings-footer-val {
+  font-weight: 600;
+  color: var(--rp-text);
+}
 
 .notif-dot {
   position: absolute;

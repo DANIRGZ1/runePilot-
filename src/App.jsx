@@ -60,8 +60,8 @@ function StartupSplash({ onDone }) {
           <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rp-text)', letterSpacing: '-0.5px' }}>
             RunePilot
           </div>
-          <div style={{ fontSize: 12, color: 'var(--rp-text-muted)', letterSpacing: 2, textTransform: 'uppercase', marginTop: 2 }}>
-            League Optimizer
+          <div style={{ fontSize: 11, color: 'var(--rp-gold)', letterSpacing: 3, textTransform: 'uppercase', marginTop: 4, fontWeight: 600 }}>
+            Tu guía definitiva en el Rift
           </div>
         </div>
       </motion.div>
@@ -107,9 +107,9 @@ function StartupSplash({ onDone }) {
         <motion.p
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 2, repeat: Infinity }}
-          style={{ fontSize: 13, color: 'var(--rp-text-muted)', margin: 0, letterSpacing: 0.3 }}
+          style={{ fontSize: 13, color: 'var(--rp-text-muted)', margin: 0, letterSpacing: 0.5 }}
         >
-          Cargando stats...
+          Iniciando RunePilot...
         </motion.p>
       </motion.div>
 
@@ -523,6 +523,16 @@ export default function App() {
           activeRegion={activeRegion}
           onRegionChange={setActiveRegion}
           ddVersion={ddVersion}
+          darkMode={darkMode}
+          onToggleDark={() => setDarkMode(d => !d)}
+          autoImportEnabled={autoImportEnabled}
+          onToggleAutoImport={() => {
+            setAutoImportEnabled(v => {
+              const next = !v;
+              localStorage.setItem('rp_autoImport', JSON.stringify(next));
+              return next;
+            });
+          }}
         />
 
         <main className="app-main-content">
