@@ -336,22 +336,60 @@ body {
 .dark-mode-toggle {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   width: 100%;
   padding: 6px 8px;
   margin: 4px 0 6px;
-  background: transparent;
-  border: 1px solid var(--rp-border);
-  border-radius: 7px;
+}
+
+.dark-mode-label {
   color: var(--rp-text-muted);
   font-size: 12px;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
-.dark-mode-toggle:hover {
-  color: var(--rp-gold);
-  border-color: var(--rp-gold);
-  background: var(--rp-gold-dim);
+
+/* UIverse switch by Praashoo7 */
+.switch {
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  width: 3.5em;
+  height: 2em;
+  flex-shrink: 0;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  box-shadow: inset 2px 5px 10px rgba(0,0,0,0.3);
+  transition: .4s;
+  border-radius: 5px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 1.4em;
+  width: 0.1em;
+  border-radius: 0px;
+  left: 0.3em;
+  bottom: 0.3em;
+  background-color: white;
+  transition: .4s;
+}
+.switch input:checked + .slider {
+  background-color: #171717;
+  box-shadow: inset 2px 5px 10px rgb(0, 0, 0);
+}
+.switch input:checked + .slider:before {
+  transform: translateX(2.8em) rotate(360deg);
 }
 
 .sidebar-version {
