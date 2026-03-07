@@ -27,10 +27,10 @@ const SPELL_ID_MAP = {
   32:'SummonerSnowball',
 };
 const IMPORT_REGIONS = [
-  { id: 'KR',  flag: '🇰🇷', label: 'Korea',      source: 'Challenger KR'  },
-  { id: 'EUW', flag: '🇪🇺', label: 'EUW',         source: 'Challenger EUW' },
-  { id: 'CN',  flag: '🇨🇳', label: 'China',       source: 'Challenger CN'  },
-  { id: 'NA',  flag: '🇺🇸', label: 'NA',          source: 'Challenger NA'  },
+  { id: 'KR',  label: 'Korea',  source: 'Challenger KR'  },
+  { id: 'EUW', label: 'EUW',   source: 'Challenger EUW' },
+  { id: 'CN',  label: 'China', source: 'Challenger CN'  },
+  { id: 'NA',  label: 'NA',    source: 'Challenger NA'  },
 ];
 
 /* ── LP simulation: deterministic per gameId ── */
@@ -126,57 +126,129 @@ function WRDonut({ wr, label = '', size = 72 }) {
   );
 }
 
-/* ── Rank Line Chart (simple SVG) ── */
-function RankChart({ tier, division }) {
+/* ── Rank Line Chart with hover tooltip ── */
+function RankChart({ tier, division, lpHistory = [] }) {
+  const [tooltip, setTooltip] = useState(null); // { x, y, lp, win, label }
+
   const TIERS_ORDER = ['IRON','BRONZE','SILVER','GOLD','PLATINUM','EMERALD','DIAMOND','MASTER','GRANDMASTER','CHALLENGER'];
   const DIV_ORDER = ['IV','III','II','I'];
-  const tierIdx = TIERS_ORDER.indexOf(tier?.toUpperCase()) ?? 5;
-  const divIdx = DIV_ORDER.indexOf(division?.toUpperCase()) ?? 1;
+  const tierIdx = TIERS_ORDER.indexOf(tier?.toUpperCase?.()) >= 0 ? TIERS_ORDER.indexOf(tier.toUpperCase()) : 5;
+  const divIdx = DIV_ORDER.indexOf(division?.toUpperCase?.()) >= 0 ? DIV_ORDER.indexOf(division.toUpperCase()) : 1;
   const currentScore = tierIdx * 4 + divIdx;
 
-  // Generate a mock progression curve ending at current rank
-  const points = useMemo(() => {
+  // Build points from LP history (most recent = rightmost)
+  const chartData = useMemo(() => {
     const base = Math.max(0, currentScore - 6);
+    if (lpHistory.length >= 2) {
+      // Accumulate LP from oldest to newest to simulate ladder position
+      let score = currentScore;
+      const reversed = [...lpHistory].reverse();
+      const scores = [currentScore];
+      for (const lp of reversed.slice(0, 7)) {
+        score = Math.max(0, score - lp);
+        scores.unshift(score);
+      }
+      return scores.map((s, i) => ({
+        value: s,
+        lp: lpHistory[lpHistory.length - 1 - (scores.length - 1 - i)] ?? null,
+        label: `Partida ${i + 1}`,
+      }));
+    }
+    // Fallback: smooth curve
     const pts = [];
     for (let i = 0; i < 8; i++) {
       const progress = i / 7;
-      const noise = (Math.sin(i * 2.3) * 0.8);
-      pts.push(base + progress * (currentScore - base) + noise);
+      const noise = Math.sin(i * 2.3) * 0.8;
+      pts.push({ value: base + progress * (currentScore - base) + noise, lp: null, label: null });
     }
-    pts[pts.length - 1] = currentScore;
+    pts[pts.length - 1].value = currentScore;
     return pts;
-  }, [currentScore]);
+  }, [currentScore, lpHistory]);
 
   const W = 220, H = 80;
-  const minP = Math.min(...points) - 1;
-  const maxP = Math.max(...points) + 1;
-  const toX = (i) => (i / (points.length - 1)) * W;
-  const toY = (v) => H - ((v - minP) / (maxP - minP)) * H;
-  const pathD = points.map((v, i) => `${i === 0 ? 'M' : 'L'} ${toX(i).toFixed(1)} ${toY(v).toFixed(1)}`).join(' ');
+  const values = chartData.map(d => d.value);
+  const minP = Math.min(...values) - 1;
+  const maxP = Math.max(...values) + 1;
+  const toX = (i) => (i / (chartData.length - 1)) * W;
+  const toY = (v) => H - ((v - minP) / (maxP - minP)) * (H - 4) - 2;
+  const pathD = chartData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${toX(i).toFixed(1)} ${toY(d.value).toFixed(1)}`).join(' ');
   const fillD = `${pathD} L ${W} ${H} L 0 ${H} Z`;
   const color = TIER_COLORS[tier] || '#4fa8e0';
-  const lastX = toX(points.length - 1);
-  const lastY = toY(points[points.length - 1]);
+  const lastX = toX(chartData.length - 1);
+  const lastY = toY(chartData[chartData.length - 1].value);
 
   return (
-    <div style={{ position: 'relative' }}>
-      <svg width={W} height={H + 10} viewBox={`0 0 ${W} ${H + 10}`} style={{ overflow: 'visible' }}>
+    <div style={{ position: 'relative', userSelect: 'none' }}>
+      <svg width={W} height={H + 10} viewBox={`0 0 ${W} ${H + 10}`}
+        style={{ overflow: 'visible', display: 'block' }}
+        onMouseLeave={() => setTooltip(null)}>
         <defs>
-          <linearGradient id="rankFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.20" />
+          <linearGradient id="rankFillGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.18" />
             <stop offset="100%" stopColor={color} stopOpacity="0.01" />
           </linearGradient>
         </defs>
-        <path d={fillD} fill="url(#rankFill)" />
-        <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={fillD} fill="url(#rankFillGrad)" />
+        <path d={pathD} fill="none" stroke={color} strokeWidth="1.8"
+          strokeLinecap="round" strokeLinejoin="round" />
+        {/* Hover targets */}
+        {chartData.map((d, i) => {
+          const cx = toX(i), cy = toY(d.value);
+          return (
+            <g key={i}>
+              <circle cx={cx} cy={cy} r="8" fill="transparent"
+                onMouseEnter={() => setTooltip({ x: cx, y: cy, lp: d.lp, label: d.label })} />
+              <circle cx={cx} cy={cy} r={tooltip && Math.abs(tooltip.x - cx) < 5 ? 4 : 2.5}
+                fill={tooltip && Math.abs(tooltip.x - cx) < 5 ? color : 'var(--rp-surface)'}
+                stroke={color} strokeWidth="1.5"
+                style={{ transition: 'r 0.1s' }} />
+            </g>
+          );
+        })}
+        {/* Last dot */}
         <circle cx={lastX} cy={lastY} r="4" fill={color} stroke="var(--rp-card)" strokeWidth="2" />
       </svg>
-      {/* Current rank label */}
-      <div style={{ position:'absolute', top: lastY - 28, left: lastX - 20,
+
+      {/* Rank label */}
+      <div style={{ position:'absolute', top: Math.max(0, lastY - 26), left: Math.min(W - 40, Math.max(0, lastX - 18)),
         background: 'var(--rp-surface)', border: `1px solid ${color}`,
-        borderRadius: 4, padding: '1px 6px', fontSize: 10, fontWeight: 700, color }}>
-        {tier?.[0]}{division && tier !== 'MASTER' && tier !== 'GRANDMASTER' && tier !== 'CHALLENGER' ? division : ''}
+        borderRadius: 4, padding: '1px 5px', fontSize: 10, fontWeight: 700, color, pointerEvents: 'none' }}>
+        {tier?.[0]}{['MASTER','GRANDMASTER','CHALLENGER'].includes(tier) ? '' : division}
       </div>
+
+      {/* Hover tooltip */}
+      {tooltip && (
+        <div style={{
+          position: 'absolute',
+          left: Math.min(W - 80, Math.max(0, tooltip.x - 30)),
+          top: Math.max(0, tooltip.y - 42),
+          background: 'var(--rp-card)',
+          border: '1px solid var(--rp-border)',
+          borderRadius: 6,
+          padding: '5px 9px',
+          fontSize: 11,
+          fontWeight: 700,
+          pointerEvents: 'none',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          whiteSpace: 'nowrap',
+          zIndex: 10,
+        }}>
+          {tooltip.lp !== null ? (
+            <span style={{ color: tooltip.lp >= 0 ? 'var(--rp-green)' : 'var(--rp-red)' }}>
+              {tooltip.lp >= 0 ? '+' : ''}{tooltip.lp} LP
+            </span>
+          ) : (
+            <span style={{ color }}>
+              {tier} {division}
+            </span>
+          )}
+          {tooltip.label && (
+            <div style={{ fontSize: 9, fontWeight: 400, color: 'var(--rp-text-sub)', marginTop: 1 }}>
+              {tooltip.label}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -390,7 +462,7 @@ function ImportBuildsSection({ ddVersion, onImport, lcuConnected }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ champion: selectedChamp, source: region?.source }),
       });
-      if (res.ok) setImportStatus({ type: 'ok', msg: `✓ Runas de ${region?.label} importadas` });
+      if (res.ok) setImportStatus({ type: 'ok', msg: `Runas de ${region?.label} importadas` });
       else setImportStatus({ type: 'err', msg: 'Error al importar' });
     } catch { setImportStatus({ type: 'err', msg: 'Sin conexión con el LCU' }); }
     setImporting(false);
@@ -400,8 +472,8 @@ function ImportBuildsSection({ ddVersion, onImport, lcuConnected }) {
   return (
     <div style={{ background: 'var(--rp-card)', border: '1px solid var(--rp-border)', borderRadius: 8, padding: 14 }}>
       <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2,
-        color: 'var(--rp-text-muted)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span>🌍</span> Importar build por región
+        color: 'var(--rp-text-muted)', marginBottom: 12 }}>
+        Importar build por region
       </div>
 
       {/* Region selector */}
@@ -411,11 +483,11 @@ function ImportBuildsSection({ ddVersion, onImport, lcuConnected }) {
             style={{
               flex: 1, padding: '6px 4px', borderRadius: 6, fontSize: 11, fontWeight: 700,
               cursor: 'pointer', transition: 'all 0.15s', border: '1px solid',
-              background: selectedRegion === r.id ? 'var(--rp-burgundy-dim)' : 'var(--rp-surface)',
-              borderColor: selectedRegion === r.id ? 'var(--rp-burgundy-light)' : 'var(--rp-border)',
-              color: selectedRegion === r.id ? 'var(--rp-burgundy-light)' : 'var(--rp-text-muted)',
+              background: selectedRegion === r.id ? 'var(--rp-gold-dim)' : 'var(--rp-surface)',
+              borderColor: selectedRegion === r.id ? 'var(--rp-gold)' : 'var(--rp-border)',
+              color: selectedRegion === r.id ? 'var(--rp-gold)' : 'var(--rp-text-muted)',
             }}>
-            {r.flag} {r.id}
+            {r.id}
           </button>
         ))}
       </div>
@@ -434,11 +506,11 @@ function ImportBuildsSection({ ddVersion, onImport, lcuConnected }) {
         style={{
           width: '100%', padding: '8px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700,
           cursor: selectedChamp && lcuConnected ? 'pointer' : 'not-allowed',
-          background: selectedChamp && lcuConnected ? 'var(--rp-burgundy)' : 'var(--rp-surface)',
+          background: selectedChamp && lcuConnected ? 'var(--rp-gold)' : 'var(--rp-surface)',
           border: 'none', color: 'white', opacity: (!selectedChamp || !lcuConnected) ? 0.5 : 1,
           transition: 'all 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
-        {importing ? '⟳ Importando…' : '⬇ Importar runas al cliente'}
+        {importing ? 'Importando...' : 'Importar runas al cliente'}
       </button>
 
       {importStatus && (
@@ -459,24 +531,77 @@ function ImportBuildsSection({ ddVersion, onImport, lcuConnected }) {
   );
 }
 
+/* ── Premium Spinner Box ── */
+function SpinnerBox({ size = 52, label = '', sublabel = '' }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
+      {/* Box + rotating border */}
+      <div style={{ position: 'relative', width: size, height: size }}>
+        {/* Outer spinning square */}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+          style={{
+            position: 'absolute', inset: 0,
+            border: '2px solid transparent',
+            borderTopColor: 'var(--rp-gold)',
+            borderRightColor: 'rgba(200,155,60,0.25)',
+            borderRadius: 4,
+          }}
+        />
+        {/* Inner box — counter-rotate slowly */}
+        <motion.div
+          animate={{ rotate: -180 }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute', inset: 8,
+            border: '1px solid rgba(200,155,60,0.3)',
+            borderRadius: 2,
+          }}
+        />
+        {/* Center logo */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: Math.round(size * 0.3), fontWeight: 800,
+          letterSpacing: 1, color: 'var(--rp-gold)',
+          fontFamily: "'Segoe UI', system-ui, sans-serif",
+        }}>
+          RP
+        </div>
+      </div>
+
+      {/* Loading bar */}
+      <div style={{ width: size * 2, height: 2, background: 'var(--rp-border)', borderRadius: 1, overflow: 'hidden' }}>
+        <motion.div
+          animate={{ x: ['-100%', '100%'] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ width: '60%', height: '100%', background: 'var(--rp-gold)', borderRadius: 1 }}
+        />
+      </div>
+
+      <div>
+        {label && (
+          <motion.p animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }}
+            style={{ fontSize: 14, fontWeight: 600, color: 'var(--rp-text)', margin: 0, textAlign: 'center' }}>
+            {label}
+          </motion.p>
+        )}
+        {sublabel && (
+          <p style={{ fontSize: 12, color: 'var(--rp-text-muted)', margin: '4px 0 0', textAlign: 'center' }}>
+            {sublabel}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── Connecting screens ── */
 function ConnectingScreen() {
   return (
     <div className="home-connecting">
-      <div className="connecting-animation">
-        <motion.div className="connecting-ring connecting-ring-1"
-          animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }} />
-        <motion.div className="connecting-ring connecting-ring-2"
-          animate={{ rotate: -360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} />
-        <motion.div className="connecting-ring connecting-ring-3"
-          animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }} />
-        <div className="connecting-logo">RP</div>
-      </div>
-      <motion.p className="connecting-title"
-        animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-        Esperando a League of Legends…
-      </motion.p>
-      <p className="connecting-sub">Abre el cliente de LoL para continuar</p>
+      <SpinnerBox size={56} label="Esperando a League of Legends..." sublabel="Abre el cliente de LoL para continuar" />
     </div>
   );
 }
@@ -486,13 +611,12 @@ function LoadingData({ onRetry }) {
   useEffect(() => { const t = setTimeout(() => setShowRetry(true), 6000); return () => clearTimeout(t); }, []);
   return (
     <div className="home-connecting">
-      <div className="connecting-animation">
-        <motion.div className="connecting-ring connecting-ring-1"
-          animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }} />
-        <div className="connecting-logo" style={{ fontSize: 11, color: '#c89b3c' }}>RP</div>
-      </div>
-      <p className="connecting-title">Cargando perfil…</p>
-      {showRetry && <button className="connecting-retry-btn" onClick={onRetry}>Reintentar</button>}
+      <SpinnerBox size={52} label="Cargando perfil..." />
+      {showRetry && (
+        <button className="connecting-retry-btn" onClick={onRetry} style={{ marginTop: 8 }}>
+          Reintentar conexion
+        </button>
+      )}
     </div>
   );
 }
@@ -666,14 +790,14 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
                 onChange={e => setSearchInput(e.target.value)} />
               <button className="home-search-btn" type="submit" disabled={searching}>
                 {searching
-                  ? <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}>⟳</motion.span>
+                  ? <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }} style={{ display:'inline-block', fontSize:14 }}>o</motion.span>
                   : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>}
               </button>
             </form>
             {searchError && <span className="search-error">{searchError}</span>}
             {viewMode === 'searched' && (
               <button className="home-back-btn" onClick={() => { setViewMode('own'); setSearchInput(''); setSearchedData(null); }}>
-                ← Mi perfil
+                Mi perfil
               </button>
             )}
           </div>
@@ -740,8 +864,8 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
                     )}
                     {viewMode === 'searched' && (
                       isSaved
-                        ? <button className="save-profile-btn saved" onClick={() => unsaveProfile(summoner.puuid)}>★ Guardado</button>
-                        : <button className="save-profile-btn" onClick={() => saveProfile(summoner)}>☆ Guardar</button>
+                        ? <button className="save-profile-btn saved" onClick={() => unsaveProfile(summoner.puuid)}>Guardado</button>
+                        : <button className="save-profile-btn" onClick={() => saveProfile(summoner)}>Guardar</button>
                     )}
                   </div>
                   {tier !== 'UNRANKED' ? (
@@ -760,7 +884,11 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
                         borderRadius: 6, color: 'var(--rp-gold)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                         transition: 'all 0.15s', opacity: reloading ? 0.6 : 1 }}>
                       <motion.span animate={reloading ? { rotate: 360 } : { rotate: 0 }}
-                        transition={reloading ? { duration: 1, repeat: Infinity, ease: 'linear' } : {}}>⟳</motion.span>
+                        transition={reloading ? { duration: 1, repeat: Infinity, ease: 'linear' } : {}}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
+                            <path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/>
+                          </svg>
+                        </motion.span>
                       Recargar stats
                     </button>
                   )}
@@ -773,7 +901,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
               {/* Tabs */}
               <div style={{ display: 'flex', borderTop: '1px solid var(--rp-border)', padding: '0 24px' }}>
                 {['overview', 'champion_stats', 'import'].map(tab => {
-                  const labels = { overview: 'Overview', champion_stats: 'Stats por campeón', import: '⬇ Importar builds' };
+                  const labels = { overview: 'Overview', champion_stats: 'Stats por campeon', import: 'Importar builds' };
                   return (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                       style={{ padding: '10px 16px', background: 'none', border: 'none',
@@ -893,7 +1021,10 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
           <div style={{ background: 'var(--rp-card)', border: '1px solid var(--rp-border)', borderRadius: 8, padding: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2,
               color: 'var(--rp-text-muted)', marginBottom: 12 }}>Estadísticas de rango</div>
-            <RankChart tier={tier} division={division} />
+            <RankChart tier={tier} division={division}
+              lpHistory={allGames.slice(0, 10)
+                .map(g => simulateLpChange(g.gameId, g.participants?.[0]?.stats?.win, g.queueId))
+                .filter(v => v !== null)} />
             <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
               {['S23','S24','2025'].map((y, i) => (
                 <span key={i} style={{ color: 'var(--rp-text-sub)' }}>{y}</span>
@@ -944,7 +1075,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
                   fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}
                 onMouseEnter={e => { e.target.style.color = 'var(--rp-text)'; e.target.style.borderColor = 'var(--rp-text-muted)'; }}
                 onMouseLeave={e => { e.target.style.color = 'var(--rp-text-muted)'; e.target.style.borderColor = 'var(--rp-border)'; }}>
-                Ver todos ({championStats.length}) →
+                Ver todos ({championStats.length})
               </button>
             )}
           </div>
@@ -955,7 +1086,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
           <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2,
             color: 'var(--rp-text-muted)', marginBottom: 10 }}>Build recomendada</div>
           <div style={{ fontSize: 12, color: 'var(--rp-text-muted)', lineHeight: 1.5, marginBottom: 10 }}>
-            Importa las runas y builds de los mejores jugadores de {IMPORT_REGIONS.map(r => r.flag).join(' ')} directamente al cliente.
+            Importa las runas y builds de los mejores jugadores de KR, EUW, CN y NA directamente al cliente.
           </div>
           <button onClick={() => setActiveTab('import')}
             style={{ width: '100%', padding: '8px', background: 'var(--rp-burgundy)',
@@ -963,7 +1094,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
               cursor: 'pointer', transition: 'opacity 0.15s' }}
             onMouseEnter={e => e.target.style.opacity = '0.85'}
             onMouseLeave={e => e.target.style.opacity = '1'}>
-            ⬇ Ir a importar builds
+            Ir a importar builds
           </button>
         </div>
       </div>

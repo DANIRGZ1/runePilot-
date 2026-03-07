@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 /* ===========================
-   RunePilot — Black / Burgundy / White
+   RunePilot — Charcoal / Pale Ivory
+   Light mode default, dark mode override
    =========================== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -11,91 +12,141 @@
   padding: 0;
 }
 
+/* ── Light theme (Pale Ivory) ── */
 :root {
-  /* shadcn/ui CSS variables */
-  --background:        0 0% 4%;
-  --foreground:        0 0% 100%;
-  --card:              0 0% 7%;
-  --card-foreground:   0 0% 100%;
-  --primary:           349 100% 21%;
-  --primary-foreground: 0 0% 100%;
-  --secondary:         0 0% 10%;
-  --secondary-foreground: 0 0% 70%;
-  --muted:             0 0% 12%;
-  --muted-foreground:  0 0% 52%;
-  --accent:            349 100% 21%;
-  --accent-foreground: 0 0% 100%;
+  --background:        36 33% 94%;
+  --foreground:        300 4% 16%;
+  --card:              36 40% 97%;
+  --card-foreground:   300 4% 16%;
+  --primary:           36 54% 51%;
+  --primary-foreground: 300 4% 8%;
+  --secondary:         36 20% 90%;
+  --secondary-foreground: 300 4% 30%;
+  --muted:             36 20% 90%;
+  --muted-foreground:  300 4% 42%;
+  --accent:            36 54% 51%;
+  --accent-foreground: 300 4% 8%;
   --destructive:       0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border:            0 0% 14%;
-  --input:             0 0% 10%;
-  --ring:              349 100% 21%;
-  --radius:            0.375rem;
+  --border:            36 16% 84%;
+  --input:             36 20% 90%;
+  --ring:              36 54% 51%;
+  --radius:            0.5rem;
 
-  /* RunePilot core palette */
-  --rp-bg:         #000000;
-  --rp-sidebar:    #0a0a0a;
-  --rp-card:       #111111;
-  --rp-border:     #222222;
-  --rp-hover:      #1a1a1a;
-  --rp-surface:    #0d0d0d;
+  /* Pale Ivory surface palette */
+  --rp-bg:         #F3F0E7;
+  --rp-sidebar:    #ECEAE3;
+  --rp-card:       #FAF8F4;
+  --rp-border:     #DDD9D0;
+  --rp-hover:      #E8E5DC;
+  --rp-surface:    #F0EDE6;
 
-  --rp-text:       #ffffff;
-  --rp-text-muted: #888888;
-  --rp-text-sub:   #555555;
+  --rp-text:       #2A2529;
+  --rp-text-muted: #6B6470;
+  --rp-text-sub:   #9E9AA3;
 
-  /* Burgundy accent — primary brand color */
-  --rp-burgundy:       #6D001A;
-  --rp-burgundy-light: #8B0020;
-  --rp-burgundy-dim:   rgba(109,0,26,0.15);
-  --rp-burgundy-glow:  rgba(109,0,26,0.30);
+  /* Accent */
+  --rp-blue:       #4f7ecf;
+  --rp-blue-dim:   rgba(79,126,207,0.12);
+  --rp-gold:       #b8862e;
+  --rp-gold-dim:   rgba(184,134,46,0.12);
+  --rp-red:        #d94355;
+  --rp-red-dim:    rgba(217,67,85,0.10);
+  --rp-green:      #2e8f5e;
 
-  /* Aliases: blue → burgundy for legacy refs */
-  --rp-blue:       #6D001A;
-  --rp-blue-dim:   rgba(109,0,26,0.15);
+  --rp-import:     #b8862e;
+  --rp-import-dim: rgba(184,134,46,0.14);
 
-  /* Gold — kept for rank/tier indicators */
+  --rp-ad:         #c9641a;
+  --rp-ap:         #7950d0;
+  --rp-mixed:      #2e8f5e;
+
+  --rp-radius:     8px;
+  --rp-ease:       cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Legacy aliases */
+  --bg:            #F3F0E7;
+  --surface:       #FAF8F4;
+  --hover:         #E8E5DC;
+  --rp-card-dark:  #FAF8F4;
+  --blue:          #4f7ecf;
+  --blue-dim:      rgba(79,126,207,0.12);
+  --blue-glow:     rgba(79,126,207,0.22);
+  --red:           #d94355;
+  --red-dim:       rgba(217,67,85,0.10);
+  --red-glow:      rgba(217,67,85,0.20);
+  --gold:          #b8862e;
+  --gold-dim:      rgba(184,134,46,0.12);
+  --gold-glow:     rgba(184,134,46,0.25);
+  --text:          #2A2529;
+  --rp-muted:      #6B6470;
+  --subtle:        #7a7480;
+  --ad:            #c9641a;
+  --ap:            #7950d0;
+  --mixed:         #2e8f5e;
+  --radius:        8px;
+  --ease:          cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Dark theme (Charcoal) ── */
+[data-theme="dark"] {
+  --background:       300 4% 12%;
+  --foreground:       36 33% 94%;
+  --card:             300 4% 16%;
+  --card-foreground:  36 33% 94%;
+  --muted:            300 4% 20%;
+  --muted-foreground: 300 4% 54%;
+  --border:           300 4% 24%;
+  --input:            300 4% 18%;
+  --ring:             36 54% 51%;
+
+  --rp-bg:         #1E1C21;
+  --rp-sidebar:    #171519;
+  --rp-card:       #252228;
+  --rp-border:     #3A3640;
+  --rp-hover:      #302D35;
+  --rp-surface:    #201E23;
+
+  --rp-text:       #F3F0E7;
+  --rp-text-muted: #A9A4AE;
+  --rp-text-sub:   #6B6470;
+
   --rp-gold:       #c89b3c;
   --rp-gold-dim:   rgba(200,155,60,0.12);
   --rp-red:        #e84057;
   --rp-red-dim:    rgba(232,64,87,0.10);
-  --rp-green:      #10b981;
+  --rp-green:      #3a9f5f;
+  --rp-blue:       #5b8dee;
+  --rp-blue-dim:   rgba(91,141,238,0.12);
 
   --rp-import:     #c89b3c;
-  --rp-import-dim: rgba(200,155,60,0.15);
-
+  --rp-import-dim: rgba(200,155,60,0.14);
   --rp-ad:         #f97316;
   --rp-ap:         #8b5cf6;
   --rp-mixed:      #10b981;
 
-  --rp-radius:     6px;
-  --rp-ease:       cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Legacy aliases */
-  --bg:         #000000;
-  --surface:    #111111;
-  --hover:      #1a1a1a;
-  --rp-card-dark: #111111;
-  --blue:       #6D001A;
-  --blue-dim:   rgba(109,0,26,0.15);
-  --blue-glow:  rgba(109,0,26,0.30);
-  --red:        #e84057;
-  --red-dim:    rgba(232,64,87,0.10);
-  --red-glow:   rgba(232,64,87,0.20);
-  --gold:       #c89b3c;
-  --gold-dim:   rgba(200,155,60,0.12);
-  --gold-glow:  rgba(200,155,60,0.25);
-  --text:       #ffffff;
-  --rp-muted:   #888888;
-  --subtle:     #666666;
-  --ad:         #f97316;
-  --ap:         #8b5cf6;
-  --mixed:      #10b981;
-  --radius:     6px;
-  --ease:       cubic-bezier(0.4, 0, 0.2, 1);
+  --bg:            #1E1C21;
+  --surface:       #252228;
+  --hover:         #302D35;
+  --rp-card-dark:  #252228;
+  --blue:          #5b8dee;
+  --blue-dim:      rgba(91,141,238,0.12);
+  --blue-glow:     rgba(91,141,238,0.22);
+  --red:           #e84057;
+  --red-dim:       rgba(232,64,87,0.10);
+  --red-glow:      rgba(232,64,87,0.20);
+  --gold:          #c89b3c;
+  --gold-dim:      rgba(200,155,60,0.12);
+  --gold-glow:     rgba(200,155,60,0.25);
+  --text:          #F3F0E7;
+  --rp-muted:      #A9A4AE;
+  --subtle:        #8a8490;
+  --ad:            #f97316;
+  --ap:            #8b5cf6;
+  --mixed:         #10b981;
 }
 
-body { color-scheme: dark; }
+[data-theme="dark"] body { color-scheme: dark; }
 
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -105,6 +156,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.25s var(--rp-ease), color 0.25s var(--rp-ease);
 }
 
 /* ===========================
@@ -122,7 +174,7 @@ body {
   from { width: 0; }
 }
 @keyframes pulseBlue {
-  0%, 100% { box-shadow: 0 0 0 0 var(--rp-burgundy-glow); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--gold-glow); }
   50%       { box-shadow: 0 0 0 5px transparent; }
 }
 @keyframes bannerSlideDown {
@@ -233,8 +285,8 @@ body {
 }
 
 .nav-item.active {
-  background: var(--rp-burgundy-dim);
-  color: var(--rp-burgundy-light);
+  background: var(--rp-gold-dim);
+  color: var(--rp-gold);
   font-weight: 600;
 }
 
@@ -351,8 +403,8 @@ body {
 }
 
 .topbar-input:focus {
-  border-color: var(--rp-burgundy-light);
-  box-shadow: 0 0 0 3px var(--rp-burgundy-dim);
+  border-color: var(--rp-gold);
+  box-shadow: 0 0 0 3px var(--rp-gold-dim);
 }
 .topbar-input::placeholder { color: var(--rp-text-sub); }
 
@@ -390,7 +442,7 @@ body {
 }
 
 .region-btn.active {
-  color: var(--rp-burgundy-light);
+  color: var(--rp-gold);
   font-weight: 700;
 }
 
@@ -451,7 +503,7 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6D001A, #3a000d);
+  background: linear-gradient(135deg, #2A2529, #4a4550);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1005,7 +1057,7 @@ body {
   background-position: right 10px center;
   transition: border-color 0.2s;
 }
-.rune-select:focus { border-color: var(--rp-burgundy-light); }
+.rune-select:focus { border-color: var(--rp-gold); }
 
 .rune-import-btn {
   display: flex;
@@ -1023,9 +1075,9 @@ body {
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .rune-import-btn:hover {
-  background: var(--rp-burgundy-dim);
-  border-color: var(--rp-burgundy-light);
-  color: var(--rp-burgundy-light);
+  background: var(--rp-gold-dim);
+  border-color: var(--rp-gold);
+  color: var(--rp-gold);
 }
 
 .runes-grid {
@@ -1227,7 +1279,7 @@ body {
 
 .region-stat-flag { font-size: 14px; }
 .region-stat-code { font-weight: 600; color: var(--rp-text); }
-.region-stat-wr   { font-weight: 700; color: var(--rp-burgundy-light); }
+.region-stat-wr   { font-weight: 700; color: var(--rp-gold); }
 
 /* Top global champions */
 .top-global-section {
@@ -1292,7 +1344,7 @@ body {
 .global-champ-fallback {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #6D001A, #3a000d);
+  background: linear-gradient(135deg, #2A2529, #4a4550);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1495,9 +1547,9 @@ body {
   white-space: nowrap;
 }
 .import-toast-importing {
-  background: var(--rp-burgundy-dim);
+  background: var(--rp-gold-dim);
   border-color: rgba(109,0,26,0.45);
-  color: var(--rp-burgundy-light);
+  color: var(--rp-gold);
 }
 .import-toast-ok {
   background: rgba(16,185,129,0.10);
@@ -1745,7 +1797,7 @@ body {
   outline: none;
   transition: border-color 0.2s;
 }
-.search-input:focus { border-color: var(--rp-burgundy-light); }
+.search-input:focus { border-color: var(--rp-gold); }
 .search-input::placeholder { color: var(--rp-text-sub); }
 
 .role-filters { display: flex; gap: 3px; flex-wrap: wrap; }
