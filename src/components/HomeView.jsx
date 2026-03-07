@@ -41,57 +41,70 @@ function simulateLpChange(gameId, win, queueId) {
   return win ? Math.round(18 + r * 14) : -Math.round(11 + r * 9);
 }
 
-/* ── Iconos de rol (SVG inline) ── */
+/* ── Iconos de rol (SVG inline) — orden imagen: JUNGLE,ADC,SUPPORT,MID,TOP ── */
 const ROLE_SVG = {
-  TOP: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M32 6 L26 14 L20 14 L20 22 L14 28 L14 38 L20 44 L20 52 L26 52 L32 58 L38 52 L44 52 L44 44 L50 38 L50 28 L44 22 L44 14 L38 14 Z M32 12 L36 18 L40 18 L40 24 L46 30 L46 36 L40 42 L40 48 L36 48 L32 54 L28 48 L24 48 L24 42 L18 36 L18 30 L24 24 L24 18 L28 18 Z M32 22 L27 29 L27 35 L32 42 L37 35 L37 29 Z"/>
-    </svg>
-  ),
   JUNGLE: (s) => (
     <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <rect x="8" y="8" width="48" height="48" rx="4" ry="4" fill="none" stroke="currentColor" strokeWidth="5"/>
-      <rect x="20" y="20" width="24" height="24" rx="2" ry="2"/>
-    </svg>
-  ),
-  MID: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M32 4 L40 16 L52 12 L46 24 L58 28 L48 34 L52 46 L40 42 L36 54 L32 42 L28 54 L24 42 L12 46 L16 34 L6 28 L18 24 L12 12 L24 16 Z M32 18 L27 26 L18 26 L24 34 L21 43 L30 38 L32 46 L34 38 L43 43 L40 34 L46 26 L37 26 Z"/>
-    </svg>
-  ),
-  MIDDLE: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M32 4 L40 16 L52 12 L46 24 L58 28 L48 34 L52 46 L40 42 L36 54 L32 42 L28 54 L24 42 L12 46 L16 34 L6 28 L18 24 L12 12 L24 16 Z M32 18 L27 26 L18 26 L24 34 L21 43 L30 38 L32 46 L34 38 L43 43 L40 34 L46 26 L37 26 Z"/>
+      <path d="M32 4 C28 10 20 12 16 18 C12 24 14 32 18 37 L22 33 C19 29 19 24 22 20 C25 16 30 14 32 10 C34 14 39 16 42 20 C45 24 45 29 42 33 L46 37 C50 32 52 24 48 18 C44 12 36 10 32 4Z"/>
+      <path d="M32 24 C29 28 28 33 30 38 L34 38 C36 33 35 28 32 24Z"/>
+      <path d="M26 30 C22 32 20 36 21 40 L25 39 C24 37 25 34 27 33Z" opacity="0.7"/>
+      <path d="M38 30 C42 32 44 36 43 40 L39 39 C40 37 39 34 37 33Z" opacity="0.7"/>
+      <rect x="30" y="38" width="4" height="18" rx="2"/>
+      <ellipse cx="32" cy="58" rx="8" ry="3" opacity="0.4"/>
     </svg>
   ),
   ADC: (s) => (
     <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <rect x="6" y="6" width="52" height="52" rx="4" ry="4" fill="none" stroke="currentColor" strokeWidth="5"/>
-      <line x1="14" y1="50" x2="50" y2="14" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
+      <rect x="6" y="6" width="52" height="52" rx="5" fill="none" stroke="currentColor" strokeWidth="5"/>
+      <line x1="16" y1="48" x2="48" y2="16" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
     </svg>
   ),
   BOTTOM: (s) => (
     <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <rect x="6" y="6" width="52" height="52" rx="4" ry="4" fill="none" stroke="currentColor" strokeWidth="5"/>
-      <line x1="14" y1="50" x2="50" y2="14" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
+      <rect x="6" y="6" width="52" height="52" rx="5" fill="none" stroke="currentColor" strokeWidth="5"/>
+      <line x1="16" y1="48" x2="48" y2="16" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
     </svg>
   ),
   SUPPORT: (s) => (
     <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M6 6 L6 26 L12 26 L12 12 L26 12 L26 6 Z"/>
-      <path d="M58 6 L38 6 L38 12 L52 12 L52 26 L58 26 Z"/>
-      <path d="M6 58 L26 58 L26 52 L12 52 L12 38 L6 38 Z"/>
-      <path d="M58 58 L58 38 L52 38 L52 52 L38 52 L38 58 Z"/>
-      <rect x="22" y="22" width="20" height="20" rx="2" ry="2"/>
+      <path d="M6 6 L6 22 L11 22 L11 11 L22 11 L22 6 Z"/>
+      <path d="M58 6 L42 6 L42 11 L53 11 L53 22 L58 22 Z"/>
+      <path d="M6 58 L22 58 L22 53 L11 53 L11 42 L6 42 Z"/>
+      <path d="M58 58 L58 42 L53 42 L53 53 L42 53 L42 58 Z"/>
+      <rect x="21" y="21" width="22" height="22" rx="3"/>
     </svg>
   ),
   UTILITY: (s) => (
     <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M6 6 L6 26 L12 26 L12 12 L26 12 L26 6 Z"/>
-      <path d="M58 6 L38 6 L38 12 L52 12 L52 26 L58 26 Z"/>
-      <path d="M6 58 L26 58 L26 52 L12 52 L12 38 L6 38 Z"/>
-      <path d="M58 58 L58 38 L52 38 L52 52 L38 52 L38 58 Z"/>
-      <rect x="22" y="22" width="20" height="20" rx="2" ry="2"/>
+      <path d="M6 6 L6 22 L11 22 L11 11 L22 11 L22 6 Z"/>
+      <path d="M58 6 L42 6 L42 11 L53 11 L53 22 L58 22 Z"/>
+      <path d="M6 58 L22 58 L22 53 L11 53 L11 42 L6 42 Z"/>
+      <path d="M58 58 L58 42 L53 42 L53 53 L42 53 L42 58 Z"/>
+      <rect x="21" y="21" width="22" height="22" rx="3"/>
+    </svg>
+  ),
+  MID: (s) => (
+    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
+      <path d="M32 8 C32 8 24 16 20 26 C16 36 22 44 32 44 C42 44 48 36 44 26 C40 16 32 8 32 8Z" opacity="0.9"/>
+      <path d="M32 8 L32 56" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+      <path d="M32 26 C26 20 14 18 10 24 C6 30 12 40 22 38 C28 37 32 32 32 26Z" opacity="0.75"/>
+      <path d="M32 26 C38 20 50 18 54 24 C58 30 52 40 42 38 C36 37 32 32 32 26Z" opacity="0.75"/>
+      <circle cx="32" cy="26" r="4"/>
+    </svg>
+  ),
+  MIDDLE: (s) => (
+    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
+      <path d="M32 8 C32 8 24 16 20 26 C16 36 22 44 32 44 C42 44 48 36 44 26 C40 16 32 8 32 8Z" opacity="0.9"/>
+      <path d="M32 8 L32 56" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+      <path d="M32 26 C26 20 14 18 10 24 C6 30 12 40 22 38 C28 37 32 32 32 26Z" opacity="0.75"/>
+      <path d="M32 26 C38 20 50 18 54 24 C58 30 52 40 42 38 C36 37 32 32 32 26Z" opacity="0.75"/>
+      <circle cx="32" cy="26" r="4"/>
+    </svg>
+  ),
+  TOP: (s) => (
+    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
+      <rect x="8" y="8" width="48" height="48" rx="4" fill="none" stroke="currentColor" strokeWidth="5"/>
+      <rect x="21" y="21" width="22" height="22" rx="2"/>
     </svg>
   ),
 };
