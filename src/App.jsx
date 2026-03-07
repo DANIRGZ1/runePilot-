@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
@@ -8,6 +8,7 @@ import ChampionPool from "./components/ChampionPool";
 import AnalysisPanel from "./components/AnalysisPanel";
 import BuildPanel from "./components/BuildPanel";
 import MatchAcceptBanner from "./components/MatchAcceptBanner";
+import OverlayView from "./components/OverlayView";
 import { lcuClient } from "./services/lcuClient";
 import { getLatestVersion } from "./services/datadragon";
 import { getAllChampions, getChampionByLcuKey } from "./services/championsService";
@@ -151,7 +152,13 @@ export default function App() {
     catch { return false; }
   });
   const lastAutoImportedRef = useRef(null);
-  const matchDismissTimer = useRef(null);
+  const matchDismissTimer  = useRef(null);
+
+  // Champion object del jugador local (derivado de localLockedChampId)
+  const localChamp = useMemo(() => {
+    if (!localLockedChampId || !championsList.length) return null;
+    return championsList.find(c => c.lcuKey === localLockedChampId) || null;
+  }, [localLockedChampId, championsList]);
   const importToastTimer = useRef(null);
 
   const retryTimerRef = useRef(null);
@@ -435,77 +442,17 @@ export default function App() {
       </div>
     );
     return (
-    <div className="draft-layout">
-      <div className="draft-main">
-        <div className="draft-top-bar">
-          <h2 className="draft-view-title">Draft Analyzer</h2>
-          {assignedPosition && (
-            <span className="assigned-pos-badge">🎯 {assignedPosition}</span>
-          )}
-          {importToast && (
-            <span className={`import-toast import-toast-${importToast}`}>
-              {importToast === 'importing' && '⏳ Importando runas…'}
-              {importToast === 'ok'        && '✅ Runas importadas'}
-              {importToast === 'err'       && '❌ Error al importar'}
-            </span>
-          )}
-          <button
-            className={`auto-import-toggle ${autoImportEnabled ? 'enabled' : 'disabled'}`}
-            onClick={handleToggleAutoImport}
-            title={autoImportEnabled ? 'Auto-importación activada — click para desactivar' : 'Auto-importación desactivada — click para activar'}
-          >
-            {autoImportEnabled ? '📥 Auto ON' : '📥 Auto OFF'}
-          </button>
-          <button className="reset-btn-new" onClick={handleReset}>Resetear</button>
-        </div>
-        <section className="draft-section">
-          <DraftBoard
-            blueTeam={blueTeam}
-            redTeam={redTeam}
-            blueBans={blueBans}
-            redBans={redBans}
-            activeSlot={activeSlot}
-            onSlotClick={handleSlotClick}
-            onBanSlotClick={handleBanSlotClick}
-            onChampionClick={handlePickedChampionClick}
-            ddVersion={ddVersion}
-          />
-        </section>
-        <section className="analysis-section-wrapper">
-          <AnimatePresence mode="wait">
-            {selectedChampion ? (
-              <BuildPanel
-                key={selectedChampion.id}
-                champion={selectedChampion}
-                ddVersion={ddVersion}
-                onClose={() => setSelectedChampion(null)}
-              />
-            ) : (
-              <motion.div
-                key="analysis"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-              >
-                <AnalysisPanel blueTeam={blueTeam} redTeam={redTeam} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </section>
-      </div>
-      <aside className="pool-section">
-        <ChampionPool
-          champions={championsList}
-          onSelect={handleChampionSelect}
-          activeSlot={activeSlot}
-          usedChampions={usedChampions}
-          bannedChampions={bannedChampionIds}
-          ddVersion={ddVersion}
-          assignedPosition={assignedPosition}
-        />
-      </aside>
-    </div>
+      <OverlayView
+        champions={championsList}
+        assignedPosition={assignedPosition}
+        localChamp={localChamp}
+        blueTeam={blueTeam}
+        redTeam={redTeam}
+        ddVersion={ddVersion}
+        onSelectChampion={handleChampionSelect}
+        onReset={handleReset}
+        importToast={importToast}
+      />
     );
   };
 
