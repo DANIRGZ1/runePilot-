@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { RoleIcon } from './RoleIcons';
 import {
   getChampionIconByKey,
   getChampionSplashByKey,
@@ -41,85 +42,7 @@ function simulateLpChange(gameId, win, queueId) {
   return win ? Math.round(18 + r * 14) : -Math.round(11 + r * 9);
 }
 
-/* ── Iconos de rol (SVG inline) — orden imagen: JUNGLE,ADC,SUPPORT,MID,TOP ── */
-const ROLE_SVG = {
-  JUNGLE: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M32 4 C28 10 20 12 16 18 C12 24 14 32 18 37 L22 33 C19 29 19 24 22 20 C25 16 30 14 32 10 C34 14 39 16 42 20 C45 24 45 29 42 33 L46 37 C50 32 52 24 48 18 C44 12 36 10 32 4Z"/>
-      <path d="M32 24 C29 28 28 33 30 38 L34 38 C36 33 35 28 32 24Z"/>
-      <path d="M26 30 C22 32 20 36 21 40 L25 39 C24 37 25 34 27 33Z" opacity="0.7"/>
-      <path d="M38 30 C42 32 44 36 43 40 L39 39 C40 37 39 34 37 33Z" opacity="0.7"/>
-      <rect x="30" y="38" width="4" height="18" rx="2"/>
-      <ellipse cx="32" cy="58" rx="8" ry="3" opacity="0.4"/>
-    </svg>
-  ),
-  ADC: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <rect x="6" y="6" width="52" height="52" rx="5" fill="none" stroke="currentColor" strokeWidth="5"/>
-      <line x1="16" y1="48" x2="48" y2="16" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
-    </svg>
-  ),
-  BOTTOM: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <rect x="6" y="6" width="52" height="52" rx="5" fill="none" stroke="currentColor" strokeWidth="5"/>
-      <line x1="16" y1="48" x2="48" y2="16" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
-    </svg>
-  ),
-  SUPPORT: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M6 6 L6 22 L11 22 L11 11 L22 11 L22 6 Z"/>
-      <path d="M58 6 L42 6 L42 11 L53 11 L53 22 L58 22 Z"/>
-      <path d="M6 58 L22 58 L22 53 L11 53 L11 42 L6 42 Z"/>
-      <path d="M58 58 L58 42 L53 42 L53 53 L42 53 L42 58 Z"/>
-      <rect x="21" y="21" width="22" height="22" rx="3"/>
-    </svg>
-  ),
-  UTILITY: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M6 6 L6 22 L11 22 L11 11 L22 11 L22 6 Z"/>
-      <path d="M58 6 L42 6 L42 11 L53 11 L53 22 L58 22 Z"/>
-      <path d="M6 58 L22 58 L22 53 L11 53 L11 42 L6 42 Z"/>
-      <path d="M58 58 L58 42 L53 42 L53 53 L42 53 L42 58 Z"/>
-      <rect x="21" y="21" width="22" height="22" rx="3"/>
-    </svg>
-  ),
-  MID: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M32 8 C32 8 24 16 20 26 C16 36 22 44 32 44 C42 44 48 36 44 26 C40 16 32 8 32 8Z" opacity="0.9"/>
-      <path d="M32 8 L32 56" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
-      <path d="M32 26 C26 20 14 18 10 24 C6 30 12 40 22 38 C28 37 32 32 32 26Z" opacity="0.75"/>
-      <path d="M32 26 C38 20 50 18 54 24 C58 30 52 40 42 38 C36 37 32 32 32 26Z" opacity="0.75"/>
-      <circle cx="32" cy="26" r="4"/>
-    </svg>
-  ),
-  MIDDLE: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <path d="M32 8 C32 8 24 16 20 26 C16 36 22 44 32 44 C42 44 48 36 44 26 C40 16 32 8 32 8Z" opacity="0.9"/>
-      <path d="M32 8 L32 56" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
-      <path d="M32 26 C26 20 14 18 10 24 C6 30 12 40 22 38 C28 37 32 32 32 26Z" opacity="0.75"/>
-      <path d="M32 26 C38 20 50 18 54 24 C58 30 52 40 42 38 C36 37 32 32 32 26Z" opacity="0.75"/>
-      <circle cx="32" cy="26" r="4"/>
-    </svg>
-  ),
-  TOP: (s) => (
-    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
-      <rect x="8" y="8" width="48" height="48" rx="4" fill="none" stroke="currentColor" strokeWidth="5"/>
-      <rect x="21" y="21" width="22" height="22" rx="2"/>
-    </svg>
-  ),
-};
-
 /* ── Primitives ── */
-function RoleIcon({ role, size = 14 }) {
-  const key = role?.toUpperCase();
-  const fn = ROLE_SVG[key];
-  if (!fn) return null;
-  return (
-    <span style={{ display: 'inline-flex', opacity: 0.75, flexShrink: 0 }} aria-label={role}>
-      {fn(size)}
-    </span>
-  );
-}
 
 function RankedEmblem({ tier, size = 80 }) {
   const [failed, setFailed] = useState(false);
