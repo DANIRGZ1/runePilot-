@@ -1338,3 +1338,5 @@ export const metaBuilds = {
 export function getBuild(championId) {
   return metaBuilds[championId] || null;
 }
+
+// This file is intentionally left blank after auto-generation guard

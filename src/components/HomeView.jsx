@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   getChampionIconByKey,
+  getChampionSplashByKey,
   getProfileIconUrl,
   getRankedEmblemUrl,
   getItemImageUrl,
@@ -684,6 +685,16 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
       .slice(0, 8);
   }, [allGames]);
 
+  /* Most-played champion splash art */
+  const [mostPlayedSplash, setMostPlayedSplash] = useState(null);
+  useEffect(() => {
+    const topChamp = championStats[0];
+    if (!topChamp?.championId || !ddVersion) return;
+    getChampionSplashByKey(topChamp.championId, ddVersion).then(url => {
+      if (url) setMostPlayedSplash(url);
+    });
+  }, [championStats, ddVersion]);
+
   /* Ranked stats */
   const soloQ = displayData?.ranked?.queues?.find(q => q.queueType === 'RANKED_SOLO_5x5');
   const rankedQ = soloQ || displayData?.ranked?.queues?.find(q => q.queueType === 'RANKED_FLEX_SR');
@@ -829,12 +840,24 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
               style={{ background: 'var(--rp-card)', border: '1px solid var(--rp-border)',
                 borderRadius: 10, overflow: 'hidden', position: 'relative' }}>
 
-              {/* Splash background */}
+              {/* Splash background — most-played champion */}
               <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-                {profileIconUrl && (
-                  <div style={{ position: 'absolute', inset: 0,
-                    background: 'linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.3) 100%)' }} />
+                {mostPlayedSplash && (
+                  <img
+                    src={mostPlayedSplash}
+                    alt=""
+                    style={{
+                      position: 'absolute', inset: 0, width: '100%', height: '100%',
+                      objectFit: 'cover', objectPosition: 'center top',
+                      opacity: 0.35, filter: 'saturate(0.8)',
+                    }}
+                  />
                 )}
+                <div style={{ position: 'absolute', inset: 0,
+                  background: mostPlayedSplash
+                    ? 'linear-gradient(to right, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 55%, rgba(0,0,0,0.15) 100%)'
+                    : 'none',
+                }} />
               </div>
 
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 20, padding: '18px 24px' }}>

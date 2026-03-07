@@ -155,6 +155,14 @@ export async function getChampionKeyMap(version) {
   }
 }
 
+// Get champion splash URL from numeric LCU championId
+export async function getChampionSplashByKey(champId, version) {
+  if (!cachedKeyMapDd) await getChampionKeyMap(version);
+  const ddKey = cachedKeyMapDd?.[champId];
+  if (!ddKey) return null;
+  return getChampionSplashUrl(ddKey);
+}
+
 // Get champion square icon URL from numeric LCU championId
 export async function getChampionIconByKey(champId, version) {
   if (!cachedKeyMapDd) await getChampionKeyMap(version);
