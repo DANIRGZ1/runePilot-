@@ -1,22 +1,50 @@
 import React, { useState } from "react";
-import { getChampionImageUrl, getChampionSplashUrl, DD_KEYS, ROLE_ICON_URLS } from "../services/datadragon";
+import { getChampionImageUrl, getChampionSplashUrl, DD_KEYS } from "../services/datadragon";
 
 const ROLES_ORDER = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
 
-function RoleIcon({ role, size = 20 }) {
-  const [failed, setFailed] = useState(false);
-  const url = ROLE_ICON_URLS[role];
-  if (!url || failed) return <span style={{ fontSize: 14, opacity: 0.4 }}>?</span>;
+/* ── Iconos oficiales de rol (SVG inline) ── */
+const ROLE_SVG = {
+  TOP: (s) => (
+    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
+      <path d="M32 6 L26 14 L20 14 L20 22 L14 28 L14 38 L20 44 L20 52 L26 52 L32 58 L38 52 L44 52 L44 44 L50 38 L50 28 L44 22 L44 14 L38 14 Z M32 12 L36 18 L40 18 L40 24 L46 30 L46 36 L40 42 L40 48 L36 48 L32 54 L28 48 L24 48 L24 42 L18 36 L18 30 L24 24 L24 18 L28 18 Z M32 22 L27 29 L27 35 L32 42 L37 35 L37 29 Z"/>
+    </svg>
+  ),
+  JUNGLE: (s) => (
+    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
+      <rect x="8" y="8" width="48" height="48" rx="4" ry="4" fill="none" stroke="currentColor" strokeWidth="5"/>
+      <rect x="20" y="20" width="24" height="24" rx="2" ry="2"/>
+    </svg>
+  ),
+  MID: (s) => (
+    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
+      <path d="M32 4 L40 16 L52 12 L46 24 L58 28 L48 34 L52 46 L40 42 L36 54 L32 42 L28 54 L24 42 L12 46 L16 34 L6 28 L18 24 L12 12 L24 16 Z M32 18 L27 26 L18 26 L24 34 L21 43 L30 38 L32 46 L34 38 L43 43 L40 34 L46 26 L37 26 Z"/>
+    </svg>
+  ),
+  ADC: (s) => (
+    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
+      <rect x="6" y="6" width="52" height="52" rx="4" ry="4" fill="none" stroke="currentColor" strokeWidth="5"/>
+      <line x1="14" y1="50" x2="50" y2="14" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
+    </svg>
+  ),
+  SUPPORT: (s) => (
+    <svg viewBox="0 0 64 64" width={s} height={s} fill="currentColor">
+      <path d="M6 6 L6 26 L12 26 L12 12 L26 12 L26 6 Z"/>
+      <path d="M58 6 L38 6 L38 12 L52 12 L52 26 L58 26 Z"/>
+      <path d="M6 58 L26 58 L26 52 L12 52 L12 38 L6 38 Z"/>
+      <path d="M58 58 L58 38 L52 38 L52 52 L38 52 L38 58 Z"/>
+      <rect x="22" y="22" width="20" height="20" rx="2" ry="2"/>
+    </svg>
+  ),
+};
+
+function RoleIcon({ role, size = 20, color = 'currentColor' }) {
+  const fn = ROLE_SVG[role] || ROLE_SVG[role?.toUpperCase?.()];
+  if (!fn) return null;
   return (
-    <img
-      src={url}
-      alt={role}
-      width={size}
-      height={size}
-      className="role-icon-img"
-      onError={() => setFailed(true)}
-      style={{ filter: 'brightness(0) invert(1)', opacity: 0.7 }}
-    />
+    <span style={{ display: 'inline-flex', color }} aria-label={role}>
+      {fn(size)}
+    </span>
   );
 }
 

@@ -144,6 +144,7 @@ export default function App() {
     catch { return true; }
   });
   const [importToast, setImportToast] = useState(null); // null | 'importing' | 'ok' | 'err'
+  const [champSelectActive, setChampSelectActive] = useState(false);
   const [playerData, setPlayerData] = useState(null); // { summoner, ranked, history }
   const [darkMode, setDarkMode] = useState(() => {
     try { return JSON.parse(localStorage.getItem('rp_darkMode') ?? 'false'); }
@@ -205,7 +206,7 @@ export default function App() {
       if (msg.lcuConnected) fetchPlayerData();
     });
     const off4 = lcuClient.on('lcu_connected', () => { setLcuStatus('connected'); fetchPlayerData(); });
-    const off5 = lcuClient.on('lcu_disconnected', () => setLcuStatus('disconnected'));
+    const off5 = lcuClient.on('lcu_disconnected', () => { setLcuStatus('disconnected'); setChampSelectActive(false); });
     const off6 = lcuClient.on('match_found', (msg) => {
       setMatchEvent({ type: 'match_found', timer: msg.timer || 12 });
       clearTimeout(matchDismissTimer.current);
@@ -225,6 +226,7 @@ export default function App() {
     const off9 = lcuClient.on('champ_select_update', async (msg) => {
       const session = msg.session;
       if (!session) return;
+      setChampSelectActive(true);
 
       const findChamp = async (championId) => {
         if (!championId) return null;
@@ -402,7 +404,37 @@ export default function App() {
     setImportToast(null);
   };
 
-  const renderDraftView = () => (
+  const renderDraftView = () => {
+    if (!champSelectActive) return (
+      <div className="draft-waiting">
+        <div className="draft-waiting-inner">
+          <svg viewBox="0 0 80 80" width="72" height="72" fill="none">
+            {/* Escudo LoL */}
+            <path d="M40 8 L68 20 L68 44 Q68 62 40 74 Q12 62 12 44 L12 20 Z"
+              stroke="var(--rp-gold)" strokeWidth="1.5" fill="var(--rp-surface)" opacity="0.9"/>
+            <path d="M40 18 L58 27 L58 43 Q58 56 40 64 Q22 56 22 43 L22 27 Z"
+              stroke="var(--rp-gold)" strokeWidth="1" fill="none" opacity="0.4"/>
+            <circle cx="40" cy="41" r="7" fill="var(--rp-gold)" opacity="0.85"/>
+            <line x1="40" y1="18" x2="40" y2="34" stroke="var(--rp-gold)" strokeWidth="1.2" opacity="0.5"/>
+            <line x1="58" y1="27" x2="47" y2="37" stroke="var(--rp-gold)" strokeWidth="1.2" opacity="0.5"/>
+            <line x1="58" y1="43" x2="46" y2="44" stroke="var(--rp-gold)" strokeWidth="1.2" opacity="0.5"/>
+            <line x1="22" y1="43" x2="34" y2="44" stroke="var(--rp-gold)" strokeWidth="1.2" opacity="0.5"/>
+            <line x1="22" y1="27" x2="33" y2="37" stroke="var(--rp-gold)" strokeWidth="1.2" opacity="0.5"/>
+          </svg>
+          <div className="draft-waiting-title">Esperando selección de campeón</div>
+          <div className="draft-waiting-sub">
+            El tablero de draft aparecerá automáticamente<br/>cuando comience la selección de campeones en el cliente de League.
+          </div>
+          <div className="draft-waiting-status">
+            {lcuStatus === 'connected'
+              ? <><span className="dw-dot connected"/>Conectado al cliente — en espera de partida</>
+              : <><span className="dw-dot"/>Cliente de League no detectado</>
+            }
+          </div>
+        </div>
+      </div>
+    );
+    return (
     <div className="draft-layout">
       <div className="draft-main">
         <div className="draft-top-bar">
@@ -474,7 +506,8 @@ export default function App() {
         />
       </aside>
     </div>
-  );
+    );
+  };
 
   const renderContent = () => {
     switch (activeView) {
