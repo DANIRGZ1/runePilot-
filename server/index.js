@@ -59,11 +59,25 @@ app.get('/health', (req, res) => {
   res.json({ ok: true, lcuConnected, gameflowPhase: lastGameflowPhase });
 });
 
+// Debug — see raw LCU response
+app.get('/lcu/debug', async (req, res) => {
+  if (!lcuConnected || !lcu.credentials) return res.json({ lcuConnected: false });
+  try {
+    const summoner = await lcu.lcuGet('/lol-summoner/v1/current-summoner');
+    res.json({ lcuConnected: true, credentials: { port: lcu.credentials.port }, summoner });
+  } catch (e) {
+    res.json({ lcuConnected: true, error: e.message });
+  }
+});
+
 // Summoner profile
 app.get('/lcu/summoner', async (req, res) => {
   if (!lcuConnected || !lcu.credentials) return res.status(503).json({ error: 'LCU not connected' });
   try {
     const data = await lcu.lcuGet('/lol-summoner/v1/current-summoner');
+    if (!data || data.httpStatus >= 400) return res.status(503).json({ error: 'LCU not ready', raw: data });
+    // Normalize: some clients use gameName instead of displayName
+    if (!data.displayName && data.gameName) data.displayName = data.gameName;
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
