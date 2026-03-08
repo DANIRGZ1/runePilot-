@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getChampionImageUrl, getChampionSplashUrl, getItemImageUrl, loadItemsData } from '../services/datadragon';
 import { RoleIcon } from './RoleIcons';
@@ -91,7 +91,7 @@ function SearchInput({ value, onChange, placeholder = 'Buscar campeón...' }) {
 /* ════════════════════════════════════════════════════════
    1. CHAMPIONS VIEW
 ════════════════════════════════════════════════════════ */
-export function ChampionsView({ champions = [], ddVersion }) {
+export function ChampionsView({ champions = [], ddVersion, playerData }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [sort, setSort] = useState('wr');
@@ -173,7 +173,6 @@ export function ChampionsView({ champions = [], ddVersion }) {
               >
                 {/* Splash */}
                 <div style={{ height: 90, overflow: 'hidden', position: 'relative', background: 'var(--rp-surface)' }}>
-                  <ChampAvatar champion={champ} ddVersion={ddVersion} size="100%" splash style={{ width: '100%', height: '100%' }} />
                   <SplashImg champ={champ} ddVersion={ddVersion} />
                   <div style={{
                     position: 'absolute', inset: 0,
@@ -227,7 +226,7 @@ function SplashImg({ champ, ddVersion }) {
 /* ════════════════════════════════════════════════════════
    2. COUNTERS VIEW
 ════════════════════════════════════════════════════════ */
-export function CountersView({ champions = [], ddVersion }) {
+export function CountersView({ champions = [], ddVersion, playerData }) {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
 
@@ -487,7 +486,7 @@ const SUMMONER_SPELLS = [
   { name: 'Cleanse', desc: 'Elimina todos los efectos de control de masas.', emoji: '✨' },
 ];
 
-export function RunasView({ champions = [], ddVersion }) {
+export function RunasView({ champions = [], ddVersion, playerData }) {
   const [activePath, setActivePath] = useState('Precision');
   const path = RUNE_PATHS[activePath];
 
@@ -618,7 +617,7 @@ export function RunasView({ champions = [], ddVersion }) {
 /* ════════════════════════════════════════════════════════
    4. WINRATES VIEW
 ════════════════════════════════════════════════════════ */
-export function WinratesView({ champions = [], ddVersion }) {
+export function WinratesView({ champions = [], ddVersion, playerData }) {
   const [roleFilter, setRoleFilter] = useState('ALL');
 
   const filtered = useMemo(() => {
