@@ -10,6 +10,7 @@ import AnalysisPanel from "./components/AnalysisPanel";
 import BuildPanel from "./components/BuildPanel";
 import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import OverlayView from "./components/OverlayView";
+import PostGameView from "./components/PostGameView";
 import WelcomeBanner from "./components/WelcomeBanner";
 import MetaPatchView from "./components/MetaPatchView";
 import { ChampionsView, CountersView, RunasView, WinratesView, PosicionView, GuiasView } from "./components/SectionViews";
@@ -133,6 +134,9 @@ export default function App() {
   const [gameflowPhase, setGameflowPhase] = useState(PHASE.NONE);
   const [liveGameData, setLiveGameData] = useState(null);
   const [isLocalBlue, setIsLocalBlue] = useState(true); // tracks which side is mine
+  const [eogData, setEogData] = useState(null);         // raw EOG stats block
+  const [liveEvents, setLiveEvents] = useState([]);     // accumulated game events
+  const [showPostGame, setShowPostGame] = useState(false);
   const lastAutoImportedRef = useRef(null);
   const matchDismissTimer  = useRef(null);
 
@@ -215,16 +219,32 @@ export default function App() {
     });
 
     const offPhase = lcuClient.on('gameflow_phase', (msg) => {
-      setGameflowPhase(msg.phase || PHASE.NONE);
-      // When returning to lobby/none, clear champ select
-      if (![PHASE.CHAMP_SELECT, PHASE.GAME_START, PHASE.IN_PROGRESS].includes(msg.phase)) {
+      const phase = msg.phase || PHASE.NONE;
+      setGameflowPhase(phase);
+      // Clear champ select when leaving it
+      if (![PHASE.CHAMP_SELECT, PHASE.GAME_START, PHASE.IN_PROGRESS].includes(phase)) {
         setChampSelectActive(false);
+      }
+      // Auto-show post-game overlay on end phases
+      if ([PHASE.WAITING_FOR_STATS, PHASE.PRE_END_OF_GAME, PHASE.END_OF_GAME].includes(phase)) {
+        setShowPostGame(true);
+      }
+      // Reset post-game when going back to lobby
+      if (phase === PHASE.NONE || phase === PHASE.LOBBY) {
+        setShowPostGame(false);
+        setEogData(null);
+        setLiveEvents([]);
       }
     });
 
-    const offLiveStart  = lcuClient.on('live_game_start',  (msg) => setLiveGameData(msg.gameData));
+    const offLiveStart  = lcuClient.on('live_game_start',  (msg) => { setLiveGameData(msg.gameData); setLiveEvents([]); });
     const offLiveUpdate = lcuClient.on('live_game_update',  (msg) => setLiveGameData(msg.gameData));
     const offLiveEnd    = lcuClient.on('live_game_ended',   ()    => setLiveGameData(null));
+    const offLiveEvts   = lcuClient.on('live_game_events',  (msg) => setLiveEvents(prev => [...prev, ...(msg.events || [])]));
+    const offEOG        = lcuClient.on('end_of_game',       (msg) => {
+      setEogData(msg.eog);
+      setShowPostGame(true);
+    });
 
     const off9 = lcuClient.on('champ_select_update', async (msg) => {
       const session = msg.session;
@@ -296,7 +316,7 @@ export default function App() {
 
     return () => {
       [off1, off2, off3, off4, off5, off6, off7, off8, off9,
-       offPhase, offLiveStart, offLiveUpdate, offLiveEnd].forEach((off) => off());
+       offPhase, offLiveStart, offLiveUpdate, offLiveEnd, offLiveEvts, offEOG].forEach((off) => off());
       lcuClient.disconnect();
       clearTimeout(matchDismissTimer.current);
     };
@@ -513,6 +533,33 @@ export default function App() {
           onDismiss={() => setMatchEvent(null)}
         />
       )}
+
+      {/* Post-game analysis overlay */}
+      <AnimatePresence>
+        {showPostGame && eogData && (
+          <motion.div
+            key="postgame"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 200,
+              background: 'var(--rp-bg)',
+              display: 'flex', flexDirection: 'column',
+            }}
+          >
+            <PostGameView
+              eogData={eogData}
+              liveEvents={liveEvents}
+              playerData={playerData}
+              ddVersion={ddVersion}
+              role={assignedPosition}
+              onClose={() => setShowPostGame(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Sidebar
         activeView={activeView}
