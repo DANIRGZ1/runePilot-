@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getChampionImageUrl } from "../services/datadragon";
 import { Input } from "./ui/input";
+import { RoleIcon } from "./RoleIcons";
 
 const ALL_ROLES = ["ALL", "TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
 
@@ -109,7 +110,14 @@ export default function ChampionPool({
               whileTap={{ scale: 0.92 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
             >
-              {role === assignedPosition ? `★ ${role}` : role}
+              {role === 'ALL' ? (
+            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.5 }}>ALL</span>
+          ) : (
+            <>
+              <RoleIcon role={role} size={14} gold={filter === role} style={{ opacity: filter === role ? 1 : 0.55 }} />
+              {role === assignedPosition && <span style={{ fontSize: 8, marginLeft: 2 }}>★</span>}
+            </>
+          )}
             </motion.button>
           ))}
         </div>

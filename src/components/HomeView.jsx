@@ -119,7 +119,8 @@ function WRDonut({ wr, label = '', size = 72 }) {
 
 /* ── Rank Line Chart with hover tooltip ── */
 function RankChart({ tier, division, lpHistory = [] }) {
-  const [tooltip, setTooltip] = useState(null); // { x, y, lp, win, label }
+  // lpHistory: array of { lp: number, date: timestamp|null }
+  const [tooltip, setTooltip] = useState(null);
 
   const TIERS_ORDER = ['IRON','BRONZE','SILVER','GOLD','PLATINUM','EMERALD','DIAMOND','MASTER','GRANDMASTER','CHALLENGER'];
   const DIV_ORDER = ['IV','III','II','I'];
@@ -127,30 +128,42 @@ function RankChart({ tier, division, lpHistory = [] }) {
   const divIdx = DIV_ORDER.indexOf(division?.toUpperCase?.()) >= 0 ? DIV_ORDER.indexOf(division.toUpperCase()) : 1;
   const currentScore = tierIdx * 4 + divIdx;
 
+  const scoreToTier = (score) => {
+    const idx = Math.floor(score / 4);
+    return TIERS_ORDER[Math.min(Math.max(idx, 0), TIERS_ORDER.length - 1)];
+  };
+
+  const formatDate = (ts) => {
+    if (!ts) return null;
+    const d = new Date(ts);
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+  };
+
   // Build points from LP history (most recent = rightmost)
   const chartData = useMemo(() => {
     const base = Math.max(0, currentScore - 6);
     if (lpHistory.length >= 2) {
-      // Accumulate LP from oldest to newest to simulate ladder position
       let score = currentScore;
       const reversed = [...lpHistory].reverse();
-      const scores = [currentScore];
-      for (const lp of reversed.slice(0, 7)) {
+      const scores = [{ value: currentScore, entry: null }];
+      for (const entry of reversed.slice(0, 7)) {
+        const lp = typeof entry === 'object' ? entry.lp : entry;
         score = Math.max(0, score - lp);
-        scores.unshift(score);
+        scores.unshift({ value: score, entry });
       }
-      return scores.map((s, i) => ({
-        value: s,
-        lp: lpHistory[lpHistory.length - 1 - (scores.length - 1 - i)] ?? null,
-        label: `Partida ${i + 1}`,
-      }));
+      return scores.map((s, i) => {
+        const origEntry = lpHistory[lpHistory.length - 1 - (scores.length - 1 - i)];
+        const lp = origEntry != null ? (typeof origEntry === 'object' ? origEntry.lp : origEntry) : null;
+        const date = origEntry != null && typeof origEntry === 'object' ? origEntry.date : null;
+        return { value: s.value, lp, date };
+      });
     }
     // Fallback: smooth curve
     const pts = [];
     for (let i = 0; i < 8; i++) {
       const progress = i / 7;
       const noise = Math.sin(i * 2.3) * 0.8;
-      pts.push({ value: base + progress * (currentScore - base) + noise, lp: null, label: null });
+      pts.push({ value: base + progress * (currentScore - base) + noise, lp: null, date: null });
     }
     pts[pts.length - 1].value = currentScore;
     return pts;
@@ -162,11 +175,24 @@ function RankChart({ tier, division, lpHistory = [] }) {
   const maxP = Math.max(...values) + 1;
   const toX = (i) => (i / (chartData.length - 1)) * W;
   const toY = (v) => H - ((v - minP) / (maxP - minP)) * (H - 4) - 2;
-  const pathD = chartData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${toX(i).toFixed(1)} ${toY(d.value).toFixed(1)}`).join(' ');
-  const fillD = `${pathD} L ${W} ${H} L 0 ${H} Z`;
   const color = TIER_COLORS[tier] || '#4fa8e0';
   const lastX = toX(chartData.length - 1);
   const lastY = toY(chartData[chartData.length - 1].value);
+
+  // Build colored segments per tier transition
+  const segments = [];
+  for (let i = 0; i < chartData.length - 1; i++) {
+    const midScore = (chartData[i].value + chartData[i + 1].value) / 2;
+    const segTier = scoreToTier(midScore);
+    const segColor = TIER_COLORS[segTier] || color;
+    const x1 = toX(i), y1 = toY(chartData[i].value);
+    const x2 = toX(i + 1), y2 = toY(chartData[i + 1].value);
+    segments.push({ x1, y1, x2, y2, color: segColor });
+  }
+
+  // Fill area path
+  const pathD = chartData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${toX(i).toFixed(1)} ${toY(d.value).toFixed(1)}`).join(' ');
+  const fillD = `${pathD} L ${W} ${H} L 0 ${H} Z`;
 
   return (
     <div style={{ position: 'relative', userSelect: 'none' }}>
@@ -179,19 +205,29 @@ function RankChart({ tier, division, lpHistory = [] }) {
             <stop offset="100%" stopColor={color} stopOpacity="0.01" />
           </linearGradient>
         </defs>
+        {/* Fill area */}
         <path d={fillD} fill="url(#rankFillGrad)" />
-        <path d={pathD} fill="none" stroke={color} strokeWidth="1.8"
-          strokeLinecap="round" strokeLinejoin="round" />
-        {/* Hover targets */}
+        {/* Colored segments per tier */}
+        {segments.map((seg, i) => (
+          <line key={i}
+            x1={seg.x1.toFixed(1)} y1={seg.y1.toFixed(1)}
+            x2={seg.x2.toFixed(1)} y2={seg.y2.toFixed(1)}
+            stroke={seg.color} strokeWidth="1.8"
+            strokeLinecap="round" />
+        ))}
+        {/* Hover targets + dots */}
         {chartData.map((d, i) => {
           const cx = toX(i), cy = toY(d.value);
+          const pointTier = scoreToTier(d.value);
+          const pointColor = TIER_COLORS[pointTier] || color;
+          const isHovered = tooltip && Math.abs(tooltip.x - cx) < 5;
           return (
             <g key={i}>
               <circle cx={cx} cy={cy} r="8" fill="transparent"
-                onMouseEnter={() => setTooltip({ x: cx, y: cy, lp: d.lp, label: d.label })} />
-              <circle cx={cx} cy={cy} r={tooltip && Math.abs(tooltip.x - cx) < 5 ? 4 : 2.5}
-                fill={tooltip && Math.abs(tooltip.x - cx) < 5 ? color : 'var(--rp-surface)'}
-                stroke={color} strokeWidth="1.5"
+                onMouseEnter={() => setTooltip({ x: cx, y: cy, lp: d.lp, date: d.date, tier: pointTier })} />
+              <circle cx={cx} cy={cy} r={isHovered ? 4 : 2.5}
+                fill={isHovered ? pointColor : 'var(--rp-surface)'}
+                stroke={pointColor} strokeWidth="1.5"
                 style={{ transition: 'r 0.1s' }} />
             </g>
           );
@@ -211,16 +247,16 @@ function RankChart({ tier, division, lpHistory = [] }) {
       {tooltip && (
         <div style={{
           position: 'absolute',
-          left: Math.min(W - 80, Math.max(0, tooltip.x - 30)),
-          top: Math.max(0, tooltip.y - 42),
+          left: Math.min(W - 90, Math.max(0, tooltip.x - 40)),
+          top: Math.max(0, tooltip.y - 52),
           background: 'var(--rp-card)',
-          border: '1px solid var(--rp-border)',
+          border: `1px solid ${TIER_COLORS[tooltip.tier] || 'var(--rp-border)'}`,
           borderRadius: 6,
           padding: '5px 9px',
           fontSize: 11,
           fontWeight: 700,
           pointerEvents: 'none',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
           whiteSpace: 'nowrap',
           zIndex: 10,
         }}>
@@ -229,13 +265,13 @@ function RankChart({ tier, division, lpHistory = [] }) {
               {tooltip.lp >= 0 ? '+' : ''}{tooltip.lp} LP
             </span>
           ) : (
-            <span style={{ color }}>
-              {tier} {division}
+            <span style={{ color: TIER_COLORS[tooltip.tier] || color }}>
+              {tooltip.tier}
             </span>
           )}
-          {tooltip.label && (
+          {tooltip.date && (
             <div style={{ fontSize: 9, fontWeight: 400, color: 'var(--rp-text-sub)', marginTop: 1 }}>
-              {tooltip.label}
+              {formatDate(tooltip.date)}
             </div>
           )}
         </div>
@@ -908,7 +944,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
                 </div>
 
                 {/* Rank emblem */}
-                {tier !== 'UNRANKED' && <RankedEmblem tier={tier} size={80} />}
+                {tier !== 'UNRANKED' && <RankedEmblem tier={tier} size={110} />}
               </div>
 
               {/* Tabs */}
@@ -937,7 +973,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
                   {/* Rank tile */}
                   <div style={{ flex: 1, background: 'var(--rp-card)', border: '1px solid var(--rp-border)',
                     borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <RankedEmblem tier={tier} size={48} />
+                    <RankedEmblem tier={tier} size={64} />
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: tierColor }}>
                         {tier !== 'UNRANKED' ? `${tier} ${division}` : 'Sin clasificar'}
@@ -1036,8 +1072,11 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
               color: 'var(--rp-text-muted)', marginBottom: 12 }}>Estadísticas de rango</div>
             <RankChart tier={tier} division={division}
               lpHistory={allGames.slice(0, 10)
-                .map(g => simulateLpChange(g.gameId, g.participants?.[0]?.stats?.win, g.queueId))
-                .filter(v => v !== null)} />
+                .map(g => {
+                  const lp = simulateLpChange(g.gameId, g.participants?.[0]?.stats?.win, g.queueId);
+                  return lp !== null ? { lp, date: g.gameCreation ?? null } : null;
+                })
+                .filter(Boolean)} />
             <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
               {['S23','S24','2025'].map((y, i) => (
                 <span key={i} style={{ color: 'var(--rp-text-sub)' }}>{y}</span>

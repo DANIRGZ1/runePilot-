@@ -21,7 +21,7 @@ import "./App.css";
 
 const ROLES = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
 const MAX_BANS = 5;
-const POS_MAP = { top: 'TOP', jungle: 'JUNGLE', mid: 'MID', bottom: 'ADC', utility: 'SUPPORT' };
+const POS_MAP = { top: 'TOP', jungle: 'JUNGLE', mid: 'MID', middle: 'MID', bottom: 'ADC', utility: 'SUPPORT' };
 
 const emptyTeam = () => ({ TOP: null, JUNGLE: null, MID: null, ADC: null, SUPPORT: null });
 const emptyBans = () => Array(MAX_BANS).fill(null);
