@@ -33,7 +33,7 @@ function getTier(wr) {
 }
 
 const TIER_COLOR = { S: '#c89b3c', A: '#52b788', B: '#5b8dee', C: '#9ca3af' };
-const ROLE_LABEL = { TOP: 'Top', JUNGLE: 'Jungla', MID: 'Mid', ADC: 'ADC', SUPPORT: 'Sup' };
+const ROLE_LABEL = { TOP: 'Top', JUNGLE: 'Jungle', MID: 'Mid', ADC: 'ADC', SUPPORT: 'Support' };
 const ROLES = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
 function TierBadge({ tier }) {
@@ -91,6 +91,71 @@ function SearchInput({ value, onChange, placeholder = 'Buscar campeón...' }) {
 /* ════════════════════════════════════════════════════════
    1. CHAMPIONS VIEW
 ════════════════════════════════════════════════════════ */
+const ROLE_FILTERS = [
+  ['ALL', 'All'],
+  ['TOP', 'Top'],
+  ['JUNGLE', 'Jungle'],
+  ['MID', 'Mid'],
+  ['ADC', 'ADC'],
+  ['SUPPORT', 'Support'],
+];
+
+function ChampCard({ champ, ddVersion, i }) {
+  const wr = champ.winRate;
+  const wrColor = wr >= 52 ? '#22c55e' : wr >= 50 ? '#eab308' : '#ef4444';
+  const wrBg   = wr >= 52 ? 'rgba(22,163,74,0.18)' : wr >= 50 ? 'rgba(202,138,4,0.18)' : 'rgba(220,38,38,0.18)';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay: Math.min(i, 30) * 0.025, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -4, scale: 1.025 }}
+      style={{
+        borderRadius: 12, overflow: 'hidden', cursor: 'default',
+        height: 280, position: 'relative',
+        background: 'var(--rp-surface)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+      }}
+    >
+      <SplashImg champ={champ} ddVersion={ddVersion} />
+      {/* Dark gradient overlay */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to top, rgba(5,8,20,0.92) 0%, rgba(5,8,20,0.5) 40%, rgba(5,8,20,0.1) 70%, transparent 100%)',
+      }} />
+      {/* Bottom info */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        padding: '12px 12px 14px',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+      }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontSize: 18, fontWeight: 700, color: '#fff', lineHeight: 1.2,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+          }}>{champ.name}</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>
+            {ROLE_LABEL[champ.role]}
+          </div>
+        </div>
+        {wr != null && (
+          <div style={{
+            fontSize: 12, fontWeight: 700, color: wrColor,
+            background: wrBg,
+            border: `1px solid ${wrColor}55`,
+            borderRadius: 6, padding: '4px 9px',
+            flexShrink: 0, marginLeft: 8,
+          }}>
+            {wr.toFixed(1)}%
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 export function ChampionsView({ champions = [], ddVersion, playerData }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
@@ -109,31 +174,46 @@ export function ChampionsView({ champions = [], ddVersion, playerData }) {
     return list;
   }, [champions, roleFilter, search, sort]);
 
-  const roleFilters = [['ALL', 'Todos'], ['TOP', 'Top'], ['JUNGLE', 'Jungla'], ['MID', 'Mid'], ['ADC', 'ADC'], ['SUPPORT', 'Soporte']];
-
   return (
     <div style={{ padding: '0 0 24px' }}>
-      <PageHeader title="Campeones" subtitle={`${filtered.length} campeones — Parche ${ddVersion?.split('.').slice(0,2).join('.') || '15.x'}`} />
-
-      {/* Controls */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ flex: '0 0 220px' }}>
-          <SearchInput value={search} onChange={setSearch} />
+      {/* Header row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--rp-text)', margin: 0, letterSpacing: '-0.3px' }}>
+            Directorio de Campeones
+          </h1>
+          <p style={{ fontSize: 13, color: '#4a9eff', margin: '4px 0 0' }}>
+            Explora estadísticas, runas y counters para cada campeón.
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 4, flex: 1, flexWrap: 'wrap' }}>
-          {roleFilters.map(([val, lbl]) => (
+        {/* Role filter pill group */}
+        <div style={{
+          display: 'flex', gap: 0,
+          background: 'var(--rp-surface)', border: '1px solid var(--rp-border)',
+          borderRadius: 8, overflow: 'hidden', flexShrink: 0,
+        }}>
+          {ROLE_FILTERS.map(([val, lbl], i) => (
             <button key={val} onClick={() => setRoleFilter(val)}
               style={{
-                padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                fontFamily: 'inherit', border: '1px solid',
-                borderColor: roleFilter === val ? 'var(--rp-gold)' : 'var(--rp-border)',
-                background: roleFilter === val ? 'var(--rp-gold-dim)' : 'var(--rp-surface)',
-                color: roleFilter === val ? 'var(--rp-gold)' : 'var(--rp-text-muted)',
-                transition: 'all 0.15s',
+                padding: '7px 16px', fontSize: 13, cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: roleFilter === val ? 700 : 500,
+                border: 'none',
+                borderRight: i < ROLE_FILTERS.length - 1 ? '1px solid var(--rp-border)' : 'none',
+                background: 'transparent',
+                color: roleFilter === val ? '#4a9eff' : 'var(--rp-text-muted)',
+                transition: 'color 0.15s',
               }}>
               {lbl}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Search + sort */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center' }}>
+        <div style={{ flex: '0 0 220px' }}>
+          <SearchInput value={search} onChange={setSearch} />
         </div>
         <select value={sort} onChange={e => setSort(e.target.value)}
           style={{
@@ -153,59 +233,10 @@ export function ChampionsView({ champions = [], ddVersion, playerData }) {
           Sin resultados para "{search}"
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
-          {filtered.map((champ, i) => {
-            const tier = getTier(champ.winRate);
-            const tierColor = TIER_COLOR[tier];
-            return (
-              <motion.div
-                key={champ.id}
-                initial={{ opacity: 0, y: 16, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: Math.min(i, 30) * 0.025, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -3, scale: 1.02 }}
-                style={{
-                  background: 'var(--rp-card)', border: `1px solid var(--rp-border)`,
-                  borderRadius: 10, overflow: 'hidden', cursor: 'default',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                  transition: 'box-shadow 0.2s',
-                }}
-              >
-                {/* Splash */}
-                <div style={{ height: 90, overflow: 'hidden', position: 'relative', background: 'var(--rp-surface)' }}>
-                  <SplashImg champ={champ} ddVersion={ddVersion} />
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
-                  }} />
-                  <div style={{ position: 'absolute', top: 6, right: 6 }}>
-                    <TierBadge tier={tier} />
-                  </div>
-                  <div style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(0,0,0,0.6)', borderRadius: 4, padding: '2px 4px' }}>
-                    <RoleIcon role={champ.role} size={12} />
-                  </div>
-                </div>
-                {/* Body */}
-                <div style={{ padding: '8px 10px 10px' }}>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--rp-text)', marginBottom: 4,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {champ.name}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, color: 'var(--rp-text-muted)' }}>{ROLE_LABEL[champ.role]}</span>
-                    <WrBadge wr={champ.winRate} />
-                  </div>
-                  <div style={{ marginTop: 6, display: 'flex', gap: 4 }}>
-                    <span style={{
-                      fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 3,
-                      background: champ.damage === 'AP' ? 'rgba(139,92,246,0.15)' : 'rgba(249,115,22,0.15)',
-                      color: champ.damage === 'AP' ? '#8b5cf6' : '#f97316',
-                    }}>{champ.damage}</span>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 12 }}>
+          {filtered.map((champ, i) => (
+            <ChampCard key={champ.id} champ={champ} ddVersion={ddVersion} i={i} />
+          ))}
         </div>
       )}
     </div>
