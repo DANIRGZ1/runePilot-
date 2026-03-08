@@ -2659,24 +2659,36 @@ body {
 
 /* Position recommendations */
 .pool-recommendations {
-  padding: 6px 8px;
+  padding: 4px 6px;
   border-bottom: 1px solid var(--rp-border);
   margin-bottom: 4px;
 }
 .pool-rec-title {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--rp-gold);
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .pool-rec-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
+  gap: 3px;
 }
 .pool-champion-rec {
   border-color: var(--rp-gold) !important;
   background: var(--rp-gold-dim) !important;
+  min-height: unset !important;
+  padding: 4px 2px !important;
+}
+.pool-champion-rec .pool-img {
+  width: 30px !important;
+  height: 30px !important;
+}
+.pool-champion-rec .pool-name {
+  font-size: 8px !important;
+}
+.pool-champion-rec .pool-wr-badge {
+  font-size: 7px !important;
 }
 
 .role-filter-btn.assigned-role {

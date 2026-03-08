@@ -100,57 +100,88 @@ const ROLE_FILTERS = [
   ['SUPPORT', 'Support'],
 ];
 
-function ChampCard({ champ, ddVersion, i }) {
-  const wr = champ.winRate;
-  const wrColor = wr >= 52 ? '#22c55e' : wr >= 50 ? '#eab308' : '#ef4444';
-  const wrBg   = wr >= 52 ? 'rgba(22,163,74,0.18)' : wr >= 50 ? 'rgba(202,138,4,0.18)' : 'rgba(220,38,38,0.18)';
+const COL_HEADERS = [
+  { key: 'rank',  label: 'RANGO',            w: 54  },
+  { key: 'role',  label: 'ROL',              w: 46  },
+  { key: 'champ', label: 'CAMPEÓN',          w: null },
+  { key: 'tier',  label: 'NIVEL',            w: 60  },
+  { key: 'wr',    label: 'TASA DE VICTORIA', w: 110 },
+  { key: 'pick',  label: 'SELECCIÓN',        w: 90  },
+  { key: 'ban',   label: 'BANEO',            w: 80  },
+];
+
+function ChampRow({ champ, rank, ddVersion, i }) {
+  const wr  = champ.winRate;
+  const tier = getTier(wr);
+  const tierColor = TIER_COLOR[tier];
+  const wrColor = wr >= 53 ? '#22c55e' : wr >= 50 ? '#c89b3c' : '#ef4444';
+  const [hovered, setHovered] = useState(false);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: Math.min(i, 30) * 0.025, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -4, scale: 1.025 }}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: Math.min(i, 40) * 0.012, duration: 0.22 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        borderRadius: 12, overflow: 'hidden', cursor: 'default',
-        height: 280, position: 'relative',
-        background: 'var(--rp-surface)',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+        display: 'flex', alignItems: 'center',
+        padding: '0 12px',
+        borderBottom: '1px solid var(--rp-border)',
+        background: hovered ? 'var(--rp-hover)' : i % 2 === 0 ? 'var(--rp-surface)' : 'transparent',
+        transition: 'background 0.12s',
+        cursor: 'default',
+        height: 44,
       }}
     >
-      <SplashImg champ={champ} ddVersion={ddVersion} />
-      {/* Dark gradient overlay */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(5,8,20,0.92) 0%, rgba(5,8,20,0.5) 40%, rgba(5,8,20,0.1) 70%, transparent 100%)',
-      }} />
-      {/* Bottom info */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        padding: '12px 12px 14px',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-      }}>
+      {/* Rank # */}
+      <div style={{ width: 54, flexShrink: 0, fontSize: 13, fontWeight: 700, color: rank <= 3 ? '#c89b3c' : 'var(--rp-text-muted)', textAlign: 'center' }}>
+        {rank}
+      </div>
+
+      {/* Role icon */}
+      <div style={{ width: 46, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+        <RoleIcon role={champ.role} size={16} style={{ color: 'var(--rp-text-muted)' }} />
+      </div>
+
+      {/* Champion img + name */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+        <ChampAvatar champion={champ} ddVersion={ddVersion} size={30} />
         <div style={{ minWidth: 0 }}>
-          <div style={{
-            fontSize: 18, fontWeight: 700, color: '#fff', lineHeight: 1.2,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            textShadow: '0 1px 4px rgba(0,0,0,0.6)',
-          }}>{champ.name}</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>
-            {ROLE_LABEL[champ.role]}
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--rp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {champ.name}
           </div>
+          <div style={{ fontSize: 10, color: 'var(--rp-text-muted)' }}>{ROLE_LABEL[champ.role]}</div>
         </div>
+      </div>
+
+      {/* Tier badge */}
+      <div style={{ width: 60, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+        <span style={{
+          fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 4,
+          background: tierColor + '22', border: `1px solid ${tierColor}55`, color: tierColor,
+          letterSpacing: '0.3px',
+        }}>{tier}</span>
+      </div>
+
+      {/* Win Rate */}
+      <div style={{ width: 110, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: 8 }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: wrColor }}>{wr != null ? `${wr.toFixed(1)} %` : '—'}</span>
         {wr != null && (
-          <div style={{
-            fontSize: 12, fontWeight: 700, color: wrColor,
-            background: wrBg,
-            border: `1px solid ${wrColor}55`,
-            borderRadius: 6, padding: '4px 9px',
-            flexShrink: 0, marginLeft: 8,
-          }}>
-            {wr.toFixed(1)}%
+          <div style={{ width: 80, height: 3, background: 'var(--rp-border)', borderRadius: 2, marginTop: 3 }}>
+            <div style={{ width: `${Math.min(100, (wr - 45) / 15 * 100)}%`, height: '100%', background: wrColor, borderRadius: 2 }} />
           </div>
         )}
+      </div>
+
+      {/* Pick Rate */}
+      <div style={{ width: 90, flexShrink: 0, fontSize: 12, color: 'var(--rp-text-muted)', textAlign: 'right', paddingRight: 8 }}>
+        {champ.pickRate != null ? `${champ.pickRate.toFixed(1)} %` : '—'}
+      </div>
+
+      {/* Ban Rate */}
+      <div style={{ width: 80, flexShrink: 0, fontSize: 12, color: champ.banRate >= 10 ? '#ef4444' : 'var(--rp-text-muted)', textAlign: 'right' }}>
+        {champ.banRate != null ? `${champ.banRate.toFixed(1)} %` : '—'}
       </div>
     </motion.div>
   );
@@ -159,86 +190,98 @@ function ChampCard({ champ, ddVersion, i }) {
 export function ChampionsView({ champions = [], ddVersion, playerData }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
-  const [sort, setSort] = useState('wr');
+  const [sortKey, setSortKey] = useState('wr');
+  const [sortDir, setSortDir] = useState(-1); // -1 desc, 1 asc
+
+  const toggleSort = (key) => {
+    if (sortKey === key) setSortDir(d => d * -1);
+    else { setSortKey(key); setSortDir(-1); }
+  };
 
   const filtered = useMemo(() => {
     let list = champions;
     if (roleFilter !== 'ALL') list = list.filter(c => c.role === roleFilter);
     if (search.trim()) list = list.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
-    if (sort === 'wr') list = [...list].sort((a, b) => (b.winRate || 0) - (a.winRate || 0));
-    else if (sort === 'tier') list = [...list].sort((a, b) => {
-      const order = { S: 0, A: 1, B: 2, C: 3 };
-      return order[getTier(a.winRate)] - order[getTier(b.winRate)];
+    return [...list].sort((a, b) => {
+      if (sortKey === 'wr')   return sortDir * ((b.winRate || 0) - (a.winRate || 0));
+      if (sortKey === 'pick') return sortDir * ((b.pickRate || 0) - (a.pickRate || 0));
+      if (sortKey === 'ban')  return sortDir * ((b.banRate || 0) - (a.banRate || 0));
+      if (sortKey === 'tier') {
+        const order = { S: 0, A: 1, B: 2, C: 3 };
+        return sortDir * (order[getTier(a.winRate)] - order[getTier(b.winRate)]);
+      }
+      return sortDir * a.name.localeCompare(b.name);
     });
-    else list = [...list].sort((a, b) => a.name.localeCompare(b.name));
-    return list;
-  }, [champions, roleFilter, search, sort]);
+  }, [champions, roleFilter, search, sortKey, sortDir]);
+
+  const sortArrow = (key) => sortKey === key ? (sortDir < 0 ? ' ▼' : ' ▲') : '';
 
   return (
     <div style={{ padding: '0 0 24px' }}>
-      {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--rp-text)', margin: 0, letterSpacing: '-0.3px' }}>
-            Directorio de Campeones
-          </h1>
-          <p style={{ fontSize: 13, color: '#4a9eff', margin: '4px 0 0' }}>
-            Explora estadísticas, runas y counters para cada campeón.
-          </p>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--rp-text)', margin: 0 }}>Directorio de Campeones</h1>
+          <p style={{ fontSize: 12, color: 'var(--rp-text-muted)', margin: '3px 0 0' }}>Parche 26.5 — Estadísticas de Esmeralda+</p>
         </div>
-        {/* Role filter pill group */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Role filter */}
+          <div style={{ display: 'flex', background: 'var(--rp-surface)', border: '1px solid var(--rp-border)', borderRadius: 7, overflow: 'hidden' }}>
+            {ROLE_FILTERS.map(([val, lbl], i) => (
+              <button key={val} onClick={() => setRoleFilter(val)}
+                style={{
+                  padding: '6px 14px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                  fontWeight: roleFilter === val ? 700 : 500, border: 'none',
+                  borderRight: i < ROLE_FILTERS.length - 1 ? '1px solid var(--rp-border)' : 'none',
+                  background: roleFilter === val ? 'var(--rp-gold)' : 'transparent',
+                  color: roleFilter === val ? '#1a1200' : 'var(--rp-text-muted)',
+                  transition: 'all 0.15s',
+                }}>
+                {lbl}
+              </button>
+            ))}
+          </div>
+          <div style={{ width: 180 }}>
+            <SearchInput value={search} onChange={setSearch} placeholder="Buscar campeón..." />
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div style={{ background: 'var(--rp-card)', border: '1px solid var(--rp-border)', borderRadius: 10, overflow: 'hidden' }}>
+        {/* Column headers */}
         <div style={{
-          display: 'flex', gap: 0,
-          background: 'var(--rp-surface)', border: '1px solid var(--rp-border)',
-          borderRadius: 8, overflow: 'hidden', flexShrink: 0,
+          display: 'flex', alignItems: 'center', padding: '0 12px', height: 36,
+          background: 'var(--rp-surface)', borderBottom: '1px solid var(--rp-border)',
         }}>
-          {ROLE_FILTERS.map(([val, lbl], i) => (
-            <button key={val} onClick={() => setRoleFilter(val)}
+          <div style={{ width: 54, flexShrink: 0, fontSize: 10, fontWeight: 700, color: 'var(--rp-text-muted)', letterSpacing: '0.8px', textAlign: 'center' }}>RANGO</div>
+          <div style={{ width: 46, flexShrink: 0, fontSize: 10, fontWeight: 700, color: 'var(--rp-text-muted)', letterSpacing: '0.8px', textAlign: 'center' }}>ROL</div>
+          <div style={{ flex: 1, fontSize: 10, fontWeight: 700, color: 'var(--rp-text-muted)', letterSpacing: '0.8px' }}>CAMPEÓN</div>
+          {[['tier','NIVEL'],['wr','TASA VIC.'],['pick','SELECCIÓN'],['ban','BANEO']].map(([k, lbl]) => (
+            <button key={k} onClick={() => toggleSort(k)}
               style={{
-                padding: '7px 16px', fontSize: 13, cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: roleFilter === val ? 700 : 500,
-                border: 'none',
-                borderRight: i < ROLE_FILTERS.length - 1 ? '1px solid var(--rp-border)' : 'none',
-                background: 'transparent',
-                color: roleFilter === val ? '#4a9eff' : 'var(--rp-text-muted)',
-                transition: 'color 0.15s',
+                width: k === 'wr' ? 110 : k === 'pick' ? 90 : k === 'ban' ? 80 : 60,
+                flexShrink: 0, fontSize: 10, fontWeight: 700, letterSpacing: '0.8px',
+                color: sortKey === k ? 'var(--rp-gold)' : 'var(--rp-text-muted)',
+                background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                textAlign: 'right', paddingRight: k !== 'ban' ? 8 : 0,
               }}>
-              {lbl}
+              {lbl}{sortArrow(k)}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Search + sort */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center' }}>
-        <div style={{ flex: '0 0 220px' }}>
-          <SearchInput value={search} onChange={setSearch} />
-        </div>
-        <select value={sort} onChange={e => setSort(e.target.value)}
-          style={{
-            padding: '6px 10px', borderRadius: 8, fontSize: 12, fontFamily: 'inherit',
-            background: 'var(--rp-surface)', border: '1px solid var(--rp-border)',
-            color: 'var(--rp-text-muted)', cursor: 'pointer', outline: 'none',
-          }}>
-          <option value="wr">Win Rate</option>
-          <option value="tier">Tier</option>
-          <option value="name">Nombre</option>
-        </select>
+        {/* Rows */}
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--rp-text-muted)', fontSize: 13 }}>
+            Sin resultados para "{search}"
+          </div>
+        ) : (
+          filtered.map((champ, i) => (
+            <ChampRow key={champ.id} champ={champ} rank={i + 1} ddVersion={ddVersion} i={i} />
+          ))
+        )}
       </div>
-
-      {/* Grid */}
-      {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--rp-text-muted)' }}>
-          Sin resultados para "{search}"
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 12 }}>
-          {filtered.map((champ, i) => (
-            <ChampCard key={champ.id} champ={champ} ddVersion={ddVersion} i={i} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

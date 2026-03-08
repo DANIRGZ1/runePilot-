@@ -944,7 +944,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
                 </div>
 
                 {/* Rank emblem */}
-                {tier !== 'UNRANKED' && <RankedEmblem tier={tier} size={110} />}
+                {tier !== 'UNRANKED' && <RankedEmblem tier={tier} size={140} />}
               </div>
 
               {/* Tabs */}
@@ -973,7 +973,7 @@ export default function HomeView({ ddVersion, playerData, lcuStatus, onRetry }) 
                   {/* Rank tile */}
                   <div style={{ flex: 1, background: 'var(--rp-card)', border: '1px solid var(--rp-border)',
                     borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <RankedEmblem tier={tier} size={64} />
+                    <RankedEmblem tier={tier} size={88} />
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: tierColor }}>
                         {tier !== 'UNRANKED' ? `${tier} ${division}` : 'Sin clasificar'}

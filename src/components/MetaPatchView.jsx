@@ -7,6 +7,29 @@ import { motion, AnimatePresence } from 'framer-motion';
    Actualizar cuando salga un parche nuevo.
 ───────────────────────────────────────────────────────────────── */
 const PATCH_DB = {
+  '26.5': {
+    date: '5 Mar 2026',
+    summary: [
+      'Nuevas actualizaciones al sistema de Objetos de Temporada 2026.',
+      'Ajustes de balance en campeones de carril central y jungla.',
+      'Cambios en el sistema de dragones y objetivos épicos.',
+      'Mejoras de rendimiento y corrección de bugs de interfaz.',
+    ],
+    buffed:    ['Ahri', 'Lux', 'Senna', 'Kayle', 'Taric', 'Rek\'Sai'],
+    nerfed:    ['Zed', 'Darius', 'Caitlyn', 'Hecarim', 'Briar', 'Fiddlesticks'],
+    adjusted:  ['Garen', 'Lee Sin', 'Ezreal', 'Thresh', 'Yasuo', 'Veigar'],
+  },
+  '26.4': {
+    date: '19 Feb 2026',
+    summary: [
+      'Reequilibrio global de campeones de jungla.',
+      'Cambios en el sistema de visión de mid game.',
+      'Ajustes al Baron Nashor y nuevos objetivos.',
+    ],
+    buffed:    ['Orianna', 'Viktor', 'Jinx', 'Nami', 'Singed'],
+    nerfed:    ['Katarina', 'Syndra', 'Veigar', 'Fizz', 'Xerath'],
+    adjusted:  ['Yasuo', 'Graves', 'Nidalee', 'Shen'],
+  },
   '15.6': {
     date: '19 Mar 2025',
     summary: [
@@ -107,7 +130,7 @@ export default function MetaPatchView({ ddVersion, playerData }) {
   const [showPatchNotes, setShowPatchNotes] = useState(false);
 
   /* Detectar parche nuevo */
-  const patchKey = ddVersion?.split('.').slice(0, 2).join('.') || '15.4';
+  const patchKey = ddVersion?.split('.').slice(0, 2).join('.') || '26.5';
   const patchInfo = PATCH_DB[patchKey] || FALLBACK_PATCH;
 
   const [isNewPatch, setIsNewPatch] = useState(false);

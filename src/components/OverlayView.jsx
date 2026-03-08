@@ -4,11 +4,84 @@ import { RoleIcon } from './RoleIcons';
 import RankIcon from './RankIcon';
 import {
   getChampionImageUrl, getChampionSplashUrl,
-  loadItemsData, getItemImageUrl,
+  loadItemsData, getItemImageUrl, getRuneIconUrl,
 } from '../services/datadragon';
 import { getBuild } from '../data/builds';
+import { loadRunes, getRuneIconPath, getTreeIconPath } from '../services/runesService';
 
 const ROLES = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
+
+const RUNE_TREE_COLORS = {
+  Precision:   '#c89b3c',
+  Domination:  '#c9453a',
+  Sorcery:     '#4a9eff',
+  Resolve:     '#52b788',
+  Inspiration: '#5bc0de',
+};
+
+/* ── Compact rune tree for builds panel ── */
+function RuneTreeCompact({ runes, runesReady }) {
+  if (!runes?.page) return null;
+  const [keystone, p1, p2, p3, s1, s2] = runes.page;
+  const primaryColor   = RUNE_TREE_COLORS[runes.primary]   || '#c89b3c';
+  const secondaryColor = RUNE_TREE_COLORS[runes.secondary] || '#64748b';
+
+  function RuneImg({ name, size = 26, isKeystone = false }) {
+    const [failed, setFailed] = useState(false);
+    const path = runesReady ? getRuneIconPath(name) : null;
+    const src  = path && !failed ? getRuneIconUrl(path) : null;
+    return (
+      <div title={name} style={{
+        width: size, height: size, borderRadius: isKeystone ? '50%' : 4,
+        background: isKeystone ? primaryColor + '22' : 'var(--rp-surface)',
+        border: `1px solid ${isKeystone ? primaryColor : 'var(--rp-border)'}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        overflow: 'hidden',
+      }}>
+        {src
+          ? <img src={src} alt={name} width={size - 2} height={size - 2} style={{ objectFit: 'contain' }} onError={() => setFailed(true)} />
+          : <span style={{ fontSize: size * 0.45, lineHeight: 1 }}>◈</span>}
+      </div>
+    );
+  }
+
+  function TreeImg({ treeName, size = 18 }) {
+    const [failed, setFailed] = useState(false);
+    const path = runesReady ? getTreeIconPath(treeName) : null;
+    const src  = path && !failed ? getRuneIconUrl(path) : null;
+    return src
+      ? <img src={src} alt={treeName} width={size} height={size} style={{ objectFit: 'contain' }} onError={() => setFailed(true)} />
+      : <span style={{ fontSize: size * 0.6, lineHeight: 1 }}>🔮</span>;
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 18 }}>
+      {/* Primary tree */}
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+          <TreeImg treeName={runes.primary} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: primaryColor }}>{runes.primary}</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-start' }}>
+          <RuneImg name={keystone} size={34} isKeystone />
+          <div style={{ display: 'flex', gap: 4 }}>
+            {[p1, p2, p3].map((r, i) => r && <RuneImg key={i} name={r} size={24} />)}
+          </div>
+        </div>
+      </div>
+      {/* Secondary tree */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+          <TreeImg treeName={runes.secondary} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: secondaryColor }}>{runes.secondary}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {[s1, s2].map((r, i) => r && <RuneImg key={i} name={r} size={24} />)}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ══════════════════════════════════════════════
    Primitivos compartidos
@@ -326,13 +399,18 @@ function BuildsLeftPanel({ champion, ddVersion }) {
 ══════════════════════════════════════════════ */
 
 function BuildsRightPanel({ champion, ddVersion }) {
-  const [itemsMap, setItemsMap] = useState(null);
+  const [itemsMap, setItemsMap]     = useState(null);
+  const [runesReady, setRunesReady] = useState(false);
   const build = champion ? getBuild(champion.id) : null;
 
   useEffect(() => {
     if (!ddVersion) return;
     loadItemsData(ddVersion).then(setItemsMap).catch(() => {});
   }, [ddVersion]);
+
+  useEffect(() => {
+    loadRunes().then(() => setRunesReady(true)).catch(() => setRunesReady(true));
+  }, []);
 
   if (!build) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--rp-text-muted)', fontSize: 13 }}>
@@ -370,6 +448,19 @@ function BuildsRightPanel({ champion, ddVersion }) {
     <div style={{ flex: 1, overflowY: 'auto', padding: '16px 22px', position: 'relative' }}>
       {patchText && (
         <div style={{ position: 'absolute', top: 14, right: 18, fontSize: 11, color: 'var(--rp-text-muted)' }}>{patchText}</div>
+      )}
+
+      {/* ── Runas ── */}
+      {build.runes && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--rp-text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+            Runas
+            <span style={{ fontSize: 10, color: 'var(--rp-gold)', fontWeight: 600 }}>
+              {build.runes.primary} / {build.runes.secondary}
+            </span>
+          </div>
+          <RuneTreeCompact runes={build.runes} runesReady={runesReady} />
+        </div>
       )}
 
       {/* ── Skill order ── */}
@@ -633,6 +724,11 @@ export default function OverlayView({
 }) {
   const [activeTab, setActiveTab] = useState('suggestions');
   const role = assignedPosition || 'SUPPORT';
+
+  // Auto-switch to builds when local player locks a champion
+  useEffect(() => {
+    if (localChamp) setActiveTab('builds');
+  }, [localChamp?.id]);
 
   const suggestions = useMemo(() =>
     champions.filter(c => c.role === role && c.winRate)
