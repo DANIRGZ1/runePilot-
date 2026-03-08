@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import RunePilotLogo from './RunePilotLogo';
 
 /* ─── LoL Hextech-style SVG icons ──────────────────────────────────────── */
 
@@ -238,10 +239,10 @@ export default function Sidebar({ activeView, onNavigate, lcuStatus, version, da
         <motion.div
           className="sidebar-logo-icon"
           style={{ color: 'var(--rp-gold)' }}
-          whileHover={{ rotate: 30, scale: 1.1 }}
+          whileHover={{ scale: 1.12 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
-          <HextechLogo />
+          <RunePilotLogo size={38} spin color="var(--rp-gold)" />
         </motion.div>
         <div className="sidebar-logo-text">
           <span className="sidebar-brand">RunePilot</span>

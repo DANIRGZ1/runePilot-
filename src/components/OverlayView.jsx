@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RoleIcon } from './RoleIcons';
 import RankIcon from './RankIcon';
+import PlayerCardsPanel from './PlayerCardsPanel';
 import {
   getChampionImageUrl, getChampionSplashUrl,
   loadItemsData, getItemImageUrl, getRuneIconUrl,
@@ -739,6 +740,7 @@ export default function OverlayView({
   const tabDef = [
     { id: 'suggestions', icon: '⚡', label: 'Suggestions' },
     { id: 'builds',      icon: '✗',  label: 'Builds'      },
+    { id: 'jugadores',   icon: '👥', label: 'Jugadores'   },
   ];
 
   return (
@@ -823,11 +825,16 @@ export default function OverlayView({
                 </div>
               </div>
             </motion.div>
-          ) : (
+          ) : activeTab === 'builds' ? (
             <motion.div key="bld" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
               style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
               <BuildsLeftPanel  champion={localChamp} ddVersion={ddVersion} />
               <BuildsRightPanel champion={localChamp} ddVersion={ddVersion} />
+            </motion.div>
+          ) : (
+            <motion.div key="jug" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
+              style={{ flex: 1, overflowY: 'auto', padding: '0 16px 16px' }}>
+              <PlayerCardsPanel blueTeam={blueTeam} redTeam={redTeam} ddVersion={ddVersion} />
             </motion.div>
           )}
         </AnimatePresence>

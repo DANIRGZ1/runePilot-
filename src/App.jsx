@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import RunePilotLogo from "./components/RunePilotLogo";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import HomeView from "./components/HomeView";
@@ -51,15 +52,10 @@ function StartupSplash({ onDone }) {
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}
       >
-        <svg viewBox="0 0 60 60" width="72" height="72">
-          <circle cx="30" cy="30" r="28" fill="var(--rp-surface)" stroke="var(--rp-gold)" strokeWidth="1.5"/>
-          <path d="M30 12 L42 20 L40 36 L30 42 L20 36 L18 20 Z" fill="none" stroke="var(--rp-gold)" strokeWidth="1.5" opacity="0.7"/>
-          <circle cx="30" cy="30" r="5" fill="var(--rp-gold)"/>
-          <path d="M30 12 L30 25 M42 20 L33 27 M40 36 L31.5 31 M20 36 L28.5 31 M18 20 L27 27" stroke="var(--rp-gold)" strokeWidth="1.2" opacity="0.5"/>
-        </svg>
+        <RunePilotLogo size={120} spin color="var(--rp-gold)" />
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rp-text)', letterSpacing: '-0.5px' }}>
             RunePilot
@@ -70,35 +66,14 @@ function StartupSplash({ onDone }) {
         </div>
       </motion.div>
 
-      {/* Premium spinner */}
+      {/* Loading bar */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.4 }}
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
       >
-        <div style={{ position: 'relative', width: 52, height: 52 }}>
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
-            style={{
-              position: 'absolute', inset: 0,
-              border: '2px solid transparent',
-              borderTopColor: 'var(--rp-gold)',
-              borderRightColor: 'rgba(200,155,60,0.25)',
-              borderRadius: 4,
-            }}
-          />
-          <motion.div
-            animate={{ rotate: -180 }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ position: 'absolute', inset: 8, border: '1px solid rgba(200,155,60,0.3)', borderRadius: 2 }}
-          />
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, fontWeight: 800, color: 'var(--rp-gold)', letterSpacing: 1,
-          }}>RP</div>
-        </div>
+        <div style={{ width: 0, height: 0 }} />
 
         <div style={{ width: 104, height: 2, background: 'var(--rp-border)', borderRadius: 1, overflow: 'hidden' }}>
           <motion.div
