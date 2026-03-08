@@ -11,6 +11,7 @@ import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import OverlayView from "./components/OverlayView";
 import WelcomeBanner from "./components/WelcomeBanner";
 import MetaPatchView from "./components/MetaPatchView";
+import { ChampionsView, CountersView, RunasView, WinratesView, PosicionView, GuiasView } from "./components/SectionViews";
 import { lcuClient } from "./services/lcuClient";
 import { getLatestVersion } from "./services/datadragon";
 import { getAllChampions, getChampionByLcuKey } from "./services/championsService";
@@ -463,6 +464,8 @@ export default function App() {
     );
   };
 
+  const viewProps = { champions: championsList, ddVersion, playerData };
+
   const renderContent = () => {
     switch (activeView) {
       case 'inicio':
@@ -472,6 +475,18 @@ export default function App() {
         return renderDraftView();
       case 'meta':
         return <MetaPatchView ddVersion={ddVersion} playerData={playerData} />;
+      case 'campeones':
+        return <ChampionsView {...viewProps} />;
+      case 'counters':
+        return <CountersView {...viewProps} />;
+      case 'runas':
+        return <RunasView {...viewProps} />;
+      case 'winrates':
+        return <WinratesView {...viewProps} />;
+      case 'posicion':
+        return <PosicionView {...viewProps} />;
+      case 'guias':
+        return <GuiasView {...viewProps} />;
       default:
         return (
           <div className="placeholder-view">
