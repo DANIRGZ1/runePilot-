@@ -9,6 +9,8 @@ import AnalysisPanel from "./components/AnalysisPanel";
 import BuildPanel from "./components/BuildPanel";
 import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import OverlayView from "./components/OverlayView";
+import WelcomeBanner from "./components/WelcomeBanner";
+import MetaPatchView from "./components/MetaPatchView";
 import { lcuClient } from "./services/lcuClient";
 import { getLatestVersion } from "./services/datadragon";
 import { getAllChampions, getChampionByLcuKey } from "./services/championsService";
@@ -151,6 +153,7 @@ export default function App() {
     try { return JSON.parse(localStorage.getItem('rp_darkMode') ?? 'false'); }
     catch { return false; }
   });
+  const [welcomeShown, setWelcomeShown] = useState(false);
   const lastAutoImportedRef = useRef(null);
   const matchDismissTimer  = useRef(null);
 
@@ -186,6 +189,8 @@ export default function App() {
         ranked:  rankRes.status === 'fulfilled' ? rankRes.value : null,
         history: histRes.status === 'fulfilled' ? histRes.value : null,
       });
+      // Mostrar bienvenida solo la primera vez por sesión
+      setWelcomeShown(prev => !prev ? true : prev);
     } catch {
       if (attempt < 5) {
         retryTimerRef.current = setTimeout(() => fetchPlayerData(attempt + 1), 2000);
@@ -465,6 +470,8 @@ export default function App() {
       case 'draft':
       case 'importar':
         return renderDraftView();
+      case 'meta':
+        return <MetaPatchView ddVersion={ddVersion} playerData={playerData} />;
       default:
         return (
           <div className="placeholder-view">
@@ -481,6 +488,14 @@ export default function App() {
       <AnimatePresence>
         {!splashDone && <StartupSplash key="splash" onDone={() => setSplashDone(true)} />}
       </AnimatePresence>
+
+      {/* Bienvenida al invocador cuando el LCU conecta y carga datos */}
+      {welcomeShown && playerData?.summoner && (
+        <WelcomeBanner
+          playerData={playerData}
+          onDismiss={() => setWelcomeShown(false)}
+        />
+      )}
 
       {matchEvent && (
         <MatchAcceptBanner

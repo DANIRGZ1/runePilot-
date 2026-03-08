@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RoleIcon } from './RoleIcons';
+import RankIcon from './RankIcon';
 import {
   getChampionImageUrl, getChampionSplashUrl,
   loadItemsData, getItemImageUrl,
@@ -518,10 +519,10 @@ function PlayerCard({ champion, role, ddVersion }) {
       )}
 
       <div style={{ position: 'relative', padding: '8px 8px 7px', display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {/* Fila superior: icono de rol + roman numeral rank */}
+        {/* Fila superior: icono de rol + emblema de rango */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
           <RoleIcon role={role} size={15} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--rp-gold)', letterSpacing: 1 }}>I</span>
+          <RankIcon tier="GOLD" size={22} />
         </div>
 
         {/* Nombre de campeón */}
