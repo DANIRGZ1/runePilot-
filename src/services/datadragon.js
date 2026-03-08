@@ -194,5 +194,5 @@ export const ROLE_ICON_URLS = {
 export function getRankedEmblemUrl(tier) {
   const t = tier?.toLowerCase();
   if (!t || t === 'unranked') return null;
-  return `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/ranked-emblems/emblem-${t}.png`;
+  return `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${t}.png`;
 }

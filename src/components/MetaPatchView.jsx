@@ -104,6 +104,7 @@ function ChangeSection({ title, accent, champs, mains }) {
 ───────────────────────────────────────────────────────────────── */
 export default function MetaPatchView({ ddVersion, playerData }) {
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [showPatchNotes, setShowPatchNotes] = useState(false);
 
   /* Detectar parche nuevo */
   const patchKey = ddVersion?.split('.').slice(0, 2).join('.') || '15.4';
@@ -205,13 +206,12 @@ export default function MetaPatchView({ ddVersion, playerData }) {
             {isNewPatch && (
               <div style={{ padding: '6px 14px', background: 'var(--rp-gold)', borderRadius: 6, fontSize: 12, fontWeight: 800, color: '#000', letterSpacing: '0.5px' }}>NUEVO</div>
             )}
-            <a
-              href={`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchKey.replace('.', '-')}-notes/`}
-              target="_blank" rel="noopener noreferrer"
-              style={{ color: 'var(--rp-gold)', fontSize: 12, textDecoration: 'none', borderBottom: '1px dashed var(--rp-gold)' }}
+            <button
+              onClick={() => setShowPatchNotes(v => !v)}
+              style={{ background: 'none', border: '1px dashed var(--rp-gold)', borderRadius: 6, color: 'var(--rp-gold)', fontSize: 12, cursor: 'pointer', padding: '4px 10px' }}
             >
-              Notas completas →
-            </a>
+              {showPatchNotes ? 'Ocultar notas' : 'Notas completas →'}
+            </button>
           </div>
         </div>
 
@@ -252,6 +252,35 @@ export default function MetaPatchView({ ddVersion, playerData }) {
           <ChangeSection title="↓ Nerfed"    accent="#ef4444" champs={patchInfo.nerfed}    mains={playerMains} />
           <ChangeSection title="~ Ajustados" accent="#f59e0b" champs={patchInfo.adjusted}  mains={playerMains} />
         </div>
+
+        {/* ── Notas del parche embebidas ── */}
+        <AnimatePresence>
+          {showPatchNotes && (
+            <motion.div
+              key="patch-notes-webview"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 640 }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              style={{ overflow: 'hidden', borderRadius: 12, border: '1px solid var(--rp-border)' }}
+            >
+              <div style={{ background: 'var(--rp-surface)', padding: '10px 14px', borderBottom: '1px solid var(--rp-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--rp-text)' }}>
+                  📄 Notas del parche {patchKey} — leagueoflegends.com
+                </span>
+                <button
+                  onClick={() => setShowPatchNotes(false)}
+                  style={{ background: 'none', border: 'none', color: 'var(--rp-text-muted)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 4px' }}
+                >✕</button>
+              </div>
+              <webview
+                src={`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchKey.replace('.', '-')}-notes/`}
+                style={{ width: '100%', height: 590, display: 'block' }}
+                partition="persist:patchnotes"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </div>
     </div>
