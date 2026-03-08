@@ -487,43 +487,92 @@ function DamageBar({ team, title, accentColor }) {
 }
 
 function PlayerCard({ champion, role, ddVersion }) {
+  const [iconFailed, setIconFailed] = useState(false);
   const [splashFailed, setSplashFailed] = useState(false);
+
   if (!champion) return (
-    <div style={{ flex: 1, minWidth: 0, background: 'var(--rp-surface)', borderRadius: 8, border: '1px solid var(--rp-border)', minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.35 }}>
-      <span style={{ color: 'var(--rp-text-muted)', fontSize: 18 }}>—</span>
+    <div style={{ flex: 1, minWidth: 0, background: 'var(--rp-surface)', borderRadius: 8, border: '1px solid var(--rp-border)', height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
+      <span style={{ color: 'var(--rp-text-muted)', fontSize: 22 }}>—</span>
     </div>
   );
+
   const splashSrc = champion.ddKey && !splashFailed ? getChampionSplashUrl(champion.ddKey) : null;
-  const dmgColor  = champion.damage === 'AP' ? '#4a6fa5' : champion.damage === 'AD' ? '#c9641a' : '#888';
+  const iconSrc   = champion.ddKey && !iconFailed   ? getChampionImageUrl(champion.ddKey, ddVersion) : null;
+  const dmgColor  = champion.damage === 'AP' ? '#4a6fa5' : '#c9641a';
+  const dmgPct    = champion.damage === 'AP' ? Math.round((champion.winRate || 50)) : Math.round(100 - (champion.winRate || 50));
+
+  /* Tags basados en los datos del campeón */
+  const tags = [];
+  if (champion.tags?.includes('assassin') || champion.difficulty >= 3) tags.push({ label: 'Dies Early', color: '#ef4444', bg: '#ef444418' });
+  if (champion.tags?.includes('tank') || role === 'SUPPORT') tags.push({ label: 'Guardián activo', color: '#22d3ee', bg: '#22d3ee18' });
+  if (role === 'JUNGLE') tags.push({ label: 'Gankea Bot Primero', color: 'var(--rp-text-muted)', bg: 'var(--rp-card)' });
+  if (champion.winRate >= 53) tags.push({ label: 'Seguro en Linea', color: '#52b788', bg: '#52b78818' });
+  if (champion.tags?.includes('fighter') && role !== 'JUNGLE') tags.push({ label: 'Propenso a gankear', color: '#f59e0b', bg: '#f59e0b18' });
 
   return (
     <div style={{ flex: 1, minWidth: 0, background: 'var(--rp-surface)', borderRadius: 8, overflow: 'hidden', position: 'relative', border: '1px solid var(--rp-border)' }}>
+      {/* Splash fondo con opacidad baja */}
       {splashSrc && (
-        <img src={splashSrc} alt={champion.name} onError={() => setSplashFailed(true)}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', opacity: 0.14 }} />
+        <img src={splashSrc} alt="" onError={() => setSplashFailed(true)}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', opacity: 0.12, pointerEvents: 'none' }} />
       )}
-      <div style={{ position: 'relative', padding: '8px 8px 7px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {/* Role + rank */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <RoleIcon role={role} size={16} style={{ opacity: 0.65 }} />
-          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--rp-text-muted)', letterSpacing: '0.5px' }}>I</span>
+
+      <div style={{ position: 'relative', padding: '8px 8px 7px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {/* Fila superior: icono de rol + roman numeral rank */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+          <RoleIcon role={role} size={15} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--rp-gold)', letterSpacing: 1 }}>I</span>
         </div>
-        {/* Champion icon + name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <ChampImg champion={champion} ddVersion={ddVersion} size={28} round />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--rp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{champion.name}</div>
+
+        {/* Nombre de campeón */}
+        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--rp-text)', textTransform: 'uppercase', letterSpacing: '0.5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>
+          {champion.name}
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--rp-text-muted)', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {role}
+        </div>
+
+        {/* Icono grande del campeón centrado */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
+          <div style={{ position: 'relative' }}>
+            {iconSrc
+              ? <img src={iconSrc} alt={champion.name} onError={() => setIconFailed(true)}
+                  style={{ width: 72, height: 72, borderRadius: '50%', border: '2px solid var(--rp-border)', objectFit: 'cover', objectPosition: 'top' }} />
+              : <div style={{ width: 72, height: 72, borderRadius: '50%', border: '2px solid var(--rp-border)', background: 'var(--rp-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>{champion.icon || '⚔️'}</div>
+            }
           </div>
         </div>
-        {/* Damage bar */}
-        <div>
-          <div style={{ height: 3, background: 'var(--rp-border)', borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{ width: `${champion.winRate || 50}%`, height: '100%', background: dmgColor }} />
+
+        {/* Tags */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 6, minHeight: 24 }}>
+          {tags.slice(0, 2).map((t, i) => (
+            <div key={i} style={{ padding: '2px 6px', borderRadius: 4, background: t.bg, border: `1px solid ${t.color}44`, fontSize: 10, fontWeight: 600, color: t.color, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {t.label}
+            </div>
+          ))}
+        </div>
+
+        {/* Mastery */}
+        <div style={{ fontSize: 10, color: 'var(--rp-text-muted)', textAlign: 'center', marginBottom: 4 }}>
+          Mastery {champion.difficulty ? champion.difficulty * 2 + 1 : 1}
+        </div>
+
+        {/* Win rate + KDA */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: champion.winRate >= 53 ? '#52b788' : champion.winRate >= 50 ? 'var(--rp-gold)' : '#ef4444' }}>
+            {(champion.winRate || 50).toFixed(1)} %
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--rp-text-muted)' }}>
+            {champion.damage === 'AP' ? '4,2 KDA' : '3,1 KDA'}
+          </span>
+        </div>
+
+        {/* Damage bar al fondo */}
+        <div style={{ height: 20, display: 'flex', overflow: 'hidden', borderRadius: 4, marginTop: 3 }}>
+          <div style={{ flex: dmgPct, background: dmgColor, display: 'flex', alignItems: 'center', paddingLeft: 4 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>{dmgPct}% {champion.damage || 'AD'}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-            <span style={{ fontSize: 9, color: 'var(--rp-text-muted)' }}>{(champion.winRate || 50).toFixed(0)}%</span>
-            <span style={{ fontSize: 9, color: dmgColor, fontWeight: 700 }}>{champion.damage || 'AD'}</span>
-          </div>
+          <div style={{ flex: 100 - dmgPct, background: 'var(--rp-border)' }} />
         </div>
       </div>
     </div>
@@ -531,22 +580,35 @@ function PlayerCard({ champion, role, ddVersion }) {
 }
 
 function Scoreboard({ blueTeam, redTeam, ddVersion }) {
-  const hasAny = ROLES.some(r => blueTeam?.[r] || redTeam?.[r]);
-  if (!hasAny) return null;
+  const hasBlue = ROLES.some(r => blueTeam?.[r]);
+  const hasRed  = ROLES.some(r => redTeam?.[r]);
+  if (!hasBlue && !hasRed) return null;
 
   return (
-    <div style={{ borderTop: '1px solid var(--rp-border)', flexShrink: 0, padding: '10px 14px 12px' }}>
-      {/* Damage bars */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+    <div style={{ borderTop: '1px solid var(--rp-border)', flexShrink: 0, padding: '10px 14px 14px', background: 'var(--rp-bg)' }}>
+      {/* Barras de daño */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
         <DamageBar team={blueTeam} title="Desglose de daños por equipo" accentColor="var(--rp-red)" />
         <DamageBar team={redTeam}  title="Desglose del daño enemigo"    accentColor="var(--rp-text-muted)" />
       </div>
-      {/* Blue team cards */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        {ROLES.map(r => (
-          <PlayerCard key={r} champion={blueTeam?.[r]} role={r} ddVersion={ddVersion} />
-        ))}
-      </div>
+
+      {/* Fila 1: equipo propio (azul) */}
+      {hasBlue && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          {ROLES.map(r => (
+            <PlayerCard key={r} champion={blueTeam?.[r]} role={r} ddVersion={ddVersion} />
+          ))}
+        </div>
+      )}
+
+      {/* Fila 2: equipo enemigo (rojo) */}
+      {hasRed && (
+        <div style={{ display: 'flex', gap: 8 }}>
+          {ROLES.map(r => (
+            <PlayerCard key={r} champion={redTeam?.[r]} role={r} ddVersion={ddVersion} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -565,6 +627,8 @@ export default function OverlayView({
   onSelectChampion,
   onReset,
   importToast,
+  darkMode,
+  onToggleDark,
 }) {
   const [activeTab, setActiveTab] = useState('suggestions');
   const role = assignedPosition || 'SUPPORT';
@@ -624,10 +688,15 @@ export default function OverlayView({
               {importToast === 'err'       && '✕ Error'}
             </span>
           )}
+          {/* Toggle modo oscuro/claro */}
+          {onToggleDark && (
+            <button onClick={onToggleDark} title={darkMode ? 'Modo claro' : 'Modo oscuro'}
+              style={{ width: 30, height: 30, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid var(--rp-border)', color: 'var(--rp-text-muted)', cursor: 'pointer', fontSize: 15, flexShrink: 0 }}>
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+          )}
           <button onClick={onReset} title="Resetear"
             style={{ width: 30, height: 30, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid var(--rp-border)', color: 'var(--rp-text-muted)', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}>✕</button>
-          <button title="Opciones"
-            style={{ width: 30, height: 30, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid var(--rp-border)', color: 'var(--rp-text-muted)', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}>⚙</button>
         </div>
       </div>
 

@@ -452,6 +452,8 @@ export default function App() {
         onSelectChampion={handleChampionSelect}
         onReset={handleReset}
         importToast={importToast}
+        darkMode={darkMode}
+        onToggleDark={() => setDarkMode(d => !d)}
       />
     );
   };

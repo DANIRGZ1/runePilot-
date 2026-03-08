@@ -88,13 +88,15 @@ export default function Sidebar({ activeView, onNavigate, lcuStatus, version, da
           <span className="lcu-text">{isConnected ? 'Conectado' : 'Desconectado'}</span>
         </div>
 
-        <div className="dark-mode-toggle">
-          <label className="switch" title={darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}>
-            <input type="checkbox" checked={darkMode} onChange={onToggleDark} />
-            <span className="slider" />
-          </label>
-          <span className="dark-mode-label">{darkMode ? 'Modo oscuro' : 'Modo claro'}</span>
-        </div>
+        <button
+          onClick={onToggleDark}
+          title={darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          style={{ background: 'none', border: '1px solid var(--rp-border)', borderRadius: 7, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: 'var(--rp-text-muted)', transition: 'color 0.15s, border-color 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--rp-gold)'; e.currentTarget.style.borderColor = 'var(--rp-gold)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--rp-text-muted)'; e.currentTarget.style.borderColor = 'var(--rp-border)'; }}
+        >
+          {darkMode ? '☀️' : '🌙'}
+        </button>
 
         <div className="sidebar-version">{version || 'v2.3.1'}</div>
       </div>
