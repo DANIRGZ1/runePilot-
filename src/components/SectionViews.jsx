@@ -745,7 +745,7 @@ export function WinratesView({ champions = [], ddVersion, playerData }) {
 /* ════════════════════════════════════════════════════════
    5. POSICION VIEW
 ════════════════════════════════════════════════════════ */
-export function PosicionView({ champions = [], ddVersion }) {
+export function PosicionView({ champions = [], ddVersion, playerData }) {
   const byRole = useMemo(() => {
     const result = {};
     for (const role of ROLES) {
@@ -833,7 +833,7 @@ export function PosicionView({ champions = [], ddVersion }) {
 /* ════════════════════════════════════════════════════════
    6. GUIAS VIEW
 ════════════════════════════════════════════════════════ */
-export function GuiasView({ champions = [], ddVersion }) {
+export function GuiasView({ champions = [], ddVersion, playerData }) {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [itemsMap, setItemsMap] = useState(null);
