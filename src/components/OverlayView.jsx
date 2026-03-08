@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RoleIcon } from './RoleIcons';
 import RankIcon from './RankIcon';
 import PlayerCardsPanel from './PlayerCardsPanel';
+import DraftIntelPanel from './DraftIntelPanel';
 import {
   getChampionImageUrl, getChampionSplashUrl,
   loadItemsData, getItemImageUrl, getRuneIconUrl,
 } from '../services/datadragon';
 import { getBuild } from '../data/builds';
 import { loadRunes, getRuneIconPath, getTreeIconPath } from '../services/runesService';
+import { buildRunePayload } from '../services/runesService';
 
 const ROLES = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
@@ -722,6 +724,9 @@ export default function OverlayView({
   importToast,
   darkMode,
   onToggleDark,
+  myTeam,      // { TOP, JUNGLE, MID, ADC, SUPPORT } — allied picks
+  enemyTeam,   // { TOP, JUNGLE, MID, ADC, SUPPORT } — enemy picks
+  onImportToast,
 }) {
   const [activeTab, setActiveTab] = useState('suggestions');
   const role = assignedPosition || 'SUPPORT';
@@ -731,16 +736,27 @@ export default function OverlayView({
     if (localChamp) setActiveTab('builds');
   }, [localChamp?.id]);
 
-  const suggestions = useMemo(() =>
-    champions.filter(c => c.role === role && c.winRate)
-      .sort((a, b) => b.winRate - a.winRate).slice(0, 6),
-    [champions, role]
-  );
+  // One-click rune import from recommendation card
+  const handleIntelImport = async (champion) => {
+    const build = getBuild(champion.id);
+    if (!build) return;
+    if (onImportToast) onImportToast('importing');
+    try {
+      const payload = await buildRunePayload(build.runes, champion.name);
+      if (!payload) { if (onImportToast) onImportToast('err'); return; }
+      const res = await fetch('http://localhost:3001/lcu/runes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (onImportToast) onImportToast(res.ok ? 'ok' : 'err');
+      setTimeout(() => onImportToast && onImportToast(null), 3000);
+    } catch { if (onImportToast) onImportToast('err'); }
+  };
 
   const tabDef = [
-    { id: 'suggestions', icon: '⚡', label: 'Suggestions' },
-    { id: 'builds',      icon: '✗',  label: 'Builds'      },
-    { id: 'jugadores',   icon: '👥', label: 'Jugadores'   },
+    { id: 'suggestions', icon: '🧠', label: 'Intel' },
+    { id: 'builds',      icon: '✗',  label: 'Builds' },
+    { id: 'jugadores',   icon: '👥', label: 'Jugadores' },
   ];
 
   return (
@@ -804,26 +820,16 @@ export default function OverlayView({
         <AnimatePresence mode="wait">
           {activeTab === 'suggestions' ? (
             <motion.div key="sug" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
-              style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-              {/* Left sidebar */}
-              <SuggestionsSidebar
-                champions={champions} assignedPosition={assignedPosition}
-                localChamp={localChamp} ddVersion={ddVersion} onSelect={onSelectChampion}
+              style={{ flex: 1, overflow: 'hidden' }}>
+              <DraftIntelPanel
+                role={assignedPosition}
+                allies={myTeam   || blueTeam}
+                enemies={enemyTeam || redTeam}
+                ddVersion={ddVersion}
+                allChamps={champions}
+                localChamp={localChamp}
+                onImportRunes={handleIntelImport}
               />
-              {/* Right: 6 cards */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column' }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--rp-text)', marginBottom: 6, lineHeight: 1.3 }}>
-                  Sugerencias de elección personalizadas en tiempo real
-                </h2>
-                <p style={{ fontSize: 13, color: 'var(--rp-text-muted)', marginBottom: 20, lineHeight: 1.5 }}>
-                  Actualizaciones en tiempo real sobre el meta, tus estadísticas, las elecciones de tus compañeros de equipo y los oponentes en linea
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, flex: 1 }}>
-                  {suggestions.map((c, i) => (
-                    <SuggestionCard key={c.id} champion={c} rank={i + 1} ddVersion={ddVersion} onSelect={onSelectChampion} />
-                  ))}
-                </div>
-              </div>
             </motion.div>
           ) : activeTab === 'builds' ? (
             <motion.div key="bld" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}

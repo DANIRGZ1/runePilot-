@@ -132,6 +132,7 @@ export default function App() {
   const [welcomeShown, setWelcomeShown] = useState(false);
   const [gameflowPhase, setGameflowPhase] = useState(PHASE.NONE);
   const [liveGameData, setLiveGameData] = useState(null);
+  const [isLocalBlue, setIsLocalBlue] = useState(true); // tracks which side is mine
   const lastAutoImportedRef = useRef(null);
   const matchDismissTimer  = useRef(null);
 
@@ -262,6 +263,7 @@ export default function App() {
       const myTeam = session.myTeam || [];
       const theirTeam = session.theirTeam || [];
       const isBlue = myTeam[0]?.team === 1;
+      setIsLocalBlue(isBlue);
 
       const blueList = isBlue ? myTeam : theirTeam;
       const redList = isBlue ? theirTeam : myTeam;
@@ -444,10 +446,13 @@ export default function App() {
         localChamp={localChamp}
         blueTeam={blueTeam}
         redTeam={redTeam}
+        myTeam={isLocalBlue ? blueTeam : redTeam}
+        enemyTeam={isLocalBlue ? redTeam : blueTeam}
         ddVersion={ddVersion}
         onSelectChampion={handleChampionSelect}
         onReset={handleReset}
         importToast={importToast}
+        onImportToast={setImportToast}
         darkMode={darkMode}
         onToggleDark={() => setDarkMode(d => !d)}
       />
