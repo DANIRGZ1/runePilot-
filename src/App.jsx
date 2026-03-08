@@ -13,7 +13,7 @@ import OverlayView from "./components/OverlayView";
 import WelcomeBanner from "./components/WelcomeBanner";
 import MetaPatchView from "./components/MetaPatchView";
 import { ChampionsView, CountersView, RunasView, WinratesView, PosicionView, GuiasView } from "./components/SectionViews";
-import { lcuClient } from "./services/lcuClient";
+import { lcuClient, PHASE } from "./services/lcuClient";
 import { getLatestVersion } from "./services/datadragon";
 import { getAllChampions, getChampionByLcuKey } from "./services/championsService";
 import { getBuild } from "./data/builds";
@@ -130,6 +130,8 @@ export default function App() {
     catch { return false; }
   });
   const [welcomeShown, setWelcomeShown] = useState(false);
+  const [gameflowPhase, setGameflowPhase] = useState(PHASE.NONE);
+  const [liveGameData, setLiveGameData] = useState(null);
   const lastAutoImportedRef = useRef(null);
   const matchDismissTimer  = useRef(null);
 
@@ -211,6 +213,18 @@ export default function App() {
       matchDismissTimer.current = setTimeout(() => setMatchEvent(null), 3000);
     });
 
+    const offPhase = lcuClient.on('gameflow_phase', (msg) => {
+      setGameflowPhase(msg.phase || PHASE.NONE);
+      // When returning to lobby/none, clear champ select
+      if (![PHASE.CHAMP_SELECT, PHASE.GAME_START, PHASE.IN_PROGRESS].includes(msg.phase)) {
+        setChampSelectActive(false);
+      }
+    });
+
+    const offLiveStart  = lcuClient.on('live_game_start',  (msg) => setLiveGameData(msg.gameData));
+    const offLiveUpdate = lcuClient.on('live_game_update',  (msg) => setLiveGameData(msg.gameData));
+    const offLiveEnd    = lcuClient.on('live_game_ended',   ()    => setLiveGameData(null));
+
     const off9 = lcuClient.on('champ_select_update', async (msg) => {
       const session = msg.session;
       if (!session) return;
@@ -279,7 +293,8 @@ export default function App() {
     });
 
     return () => {
-      [off1, off2, off3, off4, off5, off6, off7, off8, off9].forEach((off) => off());
+      [off1, off2, off3, off4, off5, off6, off7, off8, off9,
+       offPhase, offLiveStart, offLiveUpdate, offLiveEnd].forEach((off) => off());
       lcuClient.disconnect();
       clearTimeout(matchDismissTimer.current);
     };
