@@ -135,7 +135,7 @@ function HextechLogo() {
 }
 
 /* ─── NavItem component ─────────────────────────────────────────────────── */
-function NavItem({ item, isActive, onClick }) {
+function NavItem({ item, isActive, onClick, liveIndicator }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -219,13 +219,31 @@ function NavItem({ item, isActive, onClick }) {
           NUEVO
         </motion.span>
       )}
+
+      {/* LIVE badge when in-game */}
+      {liveIndicator && (
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            marginLeft: 'auto', fontSize: 9, fontWeight: 800,
+            padding: '1px 5px', borderRadius: 4,
+            background: '#ef4444', color: '#fff',
+            letterSpacing: '0.5px', zIndex: 1, position: 'relative',
+          }}
+        >
+          LIVE
+        </motion.span>
+      )}
     </motion.button>
   );
 }
 
 /* ─── Main Sidebar ──────────────────────────────────────────────────────── */
-export default function Sidebar({ activeView, onNavigate, lcuStatus, version, darkMode, onToggleDark }) {
+export default function Sidebar({ activeView, onNavigate, lcuStatus, version, darkMode, onToggleDark, gameflowPhase }) {
   const isConnected = lcuStatus === 'connected';
+  const isInGame = gameflowPhase === 'InProgress';
 
   return (
     <motion.aside
@@ -275,6 +293,7 @@ export default function Sidebar({ activeView, onNavigate, lcuStatus, version, da
                     item={item}
                     isActive={activeView === item.id}
                     onClick={onNavigate}
+                    liveIndicator={item.id === 'draft' && isInGame}
                   />
                 </motion.div>
               ))}

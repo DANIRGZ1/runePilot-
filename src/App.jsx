@@ -11,6 +11,7 @@ import BuildPanel from "./components/BuildPanel";
 import MatchAcceptBanner from "./components/MatchAcceptBanner";
 import OverlayView from "./components/OverlayView";
 import PostGameView from "./components/PostGameView";
+import LiveGameView from "./components/LiveGameView";
 import WelcomeBanner from "./components/WelcomeBanner";
 import MetaPatchView from "./components/MetaPatchView";
 import { ChampionsView, CountersView, RunasView, WinratesView, PosicionView, GuiasView } from "./components/SectionViews";
@@ -225,6 +226,10 @@ export default function App() {
       if (![PHASE.CHAMP_SELECT, PHASE.GAME_START, PHASE.IN_PROGRESS].includes(phase)) {
         setChampSelectActive(false);
       }
+      // Auto-navigate to live view when game starts
+      if (phase === PHASE.IN_PROGRESS) {
+        setActiveView('draft');
+      }
       // Auto-show post-game overlay on end phases
       if ([PHASE.WAITING_FOR_STATS, PHASE.PRE_END_OF_GAME, PHASE.END_OF_GAME].includes(phase)) {
         setShowPostGame(true);
@@ -430,6 +435,18 @@ export default function App() {
   };
 
   const renderDraftView = () => {
+    // During active game → show live scoreboard
+    if (gameflowPhase === PHASE.IN_PROGRESS) {
+      return (
+        <LiveGameView
+          liveGameData={liveGameData}
+          liveEvents={liveEvents}
+          playerData={playerData}
+          ddVersion={ddVersion}
+        />
+      );
+    }
+
     if (!champSelectActive) return (
       <div className="draft-waiting">
         <div className="draft-waiting-inner">
@@ -568,6 +585,7 @@ export default function App() {
         version={ddVersion ? `v${ddVersion.split('.').slice(0,2).join('.')}` : 'v2.3.1'}
         darkMode={darkMode}
         onToggleDark={() => setDarkMode(d => !d)}
+        gameflowPhase={gameflowPhase}
       />
 
       <div className="app-content">
